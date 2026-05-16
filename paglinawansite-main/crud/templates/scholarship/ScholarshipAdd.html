@@ -1,0 +1,70 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}Add Scholarship{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">Add Scholarship</h1>
+        <p class="text-slate-400 text-sm mt-1">Create a new scholarship program</p>
+    </div>
+
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 max-w-2xl">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Scholarship Name</label>
+                    <input type="text" name="name" placeholder="e.g. Academic Excellence Award"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Description</label>
+                    <textarea name="description" rows="3" placeholder="Scholarship description..."
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Amount (₱)</label>
+                    <input type="number" name="amount" placeholder="5000"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Slots Available</label>
+                    <input type="number" name="slots" placeholder="50"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Start Date</label>
+                    <input type="date" name="start_date"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">End Date</label>
+                    <input type="date" name="end_date"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Eligibility Requirements</label>
+                    <textarea name="eligibility" rows="3" placeholder="e.g. Must have GPA of 1.5 or higher..."
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]"></textarea>
+                </div>
+
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button type="submit" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Save Scholarship</button>
+                <a href="/scholarship/list" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

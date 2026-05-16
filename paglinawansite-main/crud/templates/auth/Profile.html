@@ -1,0 +1,104 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}My Profile{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">My Profile</h1>
+        <p class="text-slate-400 text-sm mt-1">Welcome back, {{ user.full_name }}!</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Profile Card -->
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 flex flex-col items-center text-center">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" class="w-24 h-24 rounded-full object-cover ring-4 ring-[#6366f1] mb-4">
+            {% else %}
+            <div class="w-24 h-24 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold text-3xl ring-4 ring-indigo-900 mb-4">
+                {{ user.full_name|first }}
+            </div>
+            {% endif %}
+            <h2 class="text-white font-bold text-lg">{{ user.full_name }}</h2>
+            <span class="bg-indigo-900 text-indigo-300 text-xs font-medium px-3 py-1 rounded-full mt-2">{{ user.role.role }}</span>
+            <p class="text-slate-400 text-sm mt-2">{{ user.email }}</p>
+            <p class="text-slate-400 text-sm">@{{ user.username }}</p>
+            <a href="/logout" class="mt-6 w-full bg-red-500 hover:bg-red-400 text-white text-sm font-medium py-2 rounded-lg transition text-center">
+                Logout
+            </a>
+        </div>
+
+        <!-- Scholar Info -->
+        <div class="lg:col-span-2">
+            {% if scholar %}
+            <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 mb-6">
+                <h3 class="text-white font-semibold text-lg mb-4">Scholar Information</h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-slate-500">School</p>
+                        <p class="text-white font-medium">{{ scholar.school }}</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Course</p>
+                        <p class="text-white font-medium">{{ scholar.course }}</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Year Level</p>
+                        <p class="text-white font-medium">{{ scholar.year_level }}</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">GPA</p>
+                        <p class="text-emerald-400 font-bold">{{ scholar.gpa }}</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Phone</p>
+                        <p class="text-white font-medium">{{ scholar.phone }}</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Address</p>
+                        <p class="text-white font-medium">{{ scholar.address }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications -->
+            {% if applications %}
+            <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+                <h3 class="text-white font-semibold text-lg mb-4">My Applications</h3>
+                <div class="space-y-3">
+                    {% for app in applications %}
+                    <div class="flex items-center justify-between bg-[#0f172a] border border-[#334155] rounded-lg px-4 py-3">
+                        <div>
+                            <p class="text-white font-medium text-sm">{{ app.scholarship.name }}</p>
+                            <p class="text-emerald-400 text-xs">₱{{ app.scholarship.amount }}</p>
+                        </div>
+                        {% if app.status == 'approved' %}
+                        <span class="bg-green-900 text-green-300 text-xs font-medium px-2.5 py-1 rounded-full">Approved</span>
+                        {% elif app.status == 'rejected' %}
+                        <span class="bg-red-900 text-red-300 text-xs font-medium px-2.5 py-1 rounded-full">Rejected</span>
+                        {% elif app.status == 'under_review' %}
+                        <span class="bg-blue-900 text-blue-300 text-xs font-medium px-2.5 py-1 rounded-full">Under Review</span>
+                        {% elif app.status == 'renewal' %}
+                        <span class="bg-purple-900 text-purple-300 text-xs font-medium px-2.5 py-1 rounded-full">Renewal</span>
+                        {% else %}
+                        <span class="bg-yellow-900 text-yellow-300 text-xs font-medium px-2.5 py-1 rounded-full">Pending</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 flex items-center justify-center">
+                <p class="text-slate-400 text-sm">No scholar profile linked to this account.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
