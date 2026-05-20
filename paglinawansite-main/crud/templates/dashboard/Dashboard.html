@@ -7,93 +7,90 @@
 
 <div class="sm:ml-64 mt-14 p-6">
 
-    <!-- Page Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-white">Dashboard</h1>
-        <p class="text-slate-400 text-sm mt-1">Welcome to iSkolar ng Bayan Management System</p>
+    <div class="isk-page-header">
+        <div>
+            <h1 class="isk-page-title">Dashboard</h1>
+            <p class="isk-page-sub">Welcome to iSkolar ng Bayan Management System</p>
+        </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <div class="stats-grid">
 
-        <!-- Total Scholars -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-5 flex items-center gap-4">
-            <div class="bg-[#6366f1] p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/scholar/list" class="stat-card" style="text-decoration:none;">
+            <div class="stat-icon ic-indigo">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
                 </svg>
             </div>
             <div>
-                <p class="text-slate-400 text-sm">Total Scholars</p>
-                <p class="text-2xl font-bold text-white">{{ total_scholars }}</p>
+                <p class="stat-label">Total Scholars</p>
+                <p class="stat-value">{{ total_scholars }}</p>
             </div>
-        </div>
+        </a>
 
-        <!-- Total Scholarships -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-5 flex items-center gap-4">
-            <div class="bg-emerald-500 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/scholarship/list" class="stat-card" style="text-decoration:none;">
+            <div class="stat-icon ic-emerald">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
             </div>
             <div>
-                <p class="text-slate-400 text-sm">Total Scholarships</p>
-                <p class="text-2xl font-bold text-white">{{ total_scholarships }}</p>
+                <p class="stat-label">Total Scholarships</p>
+                <p class="stat-value">{{ total_scholarships }}</p>
             </div>
-        </div>
+        </a>
 
-        <!-- Total Applications -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-5 flex items-center gap-4">
-            <div class="bg-sky-500 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/application/list" class="stat-card" style="text-decoration:none;">
+            <div class="stat-icon ic-sky">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                 </svg>
             </div>
             <div>
-                <p class="text-slate-400 text-sm">Total Applications</p>
-                <p class="text-2xl font-bold text-white">{{ total_applications }}</p>
+                <p class="stat-label">Total Applications</p>
+                <p class="stat-value">{{ total_applications }}</p>
             </div>
-        </div>
+        </a>
 
-        <!-- Pending -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-5 flex items-center gap-4">
-            <div class="bg-yellow-500 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/application/list?status=Pending" class="stat-card" style="text-decoration:none;">
+            <div class="stat-icon ic-amber">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
             <div>
-                <p class="text-slate-400 text-sm">Pending</p>
-                <p class="text-2xl font-bold text-white">{{ pending }}</p>
+                <p class="stat-label">Pending</p>
+                <p class="stat-value">{{ pending }}</p>
             </div>
-        </div>
+        </a>
 
-        <!-- Approved -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-5 flex items-center gap-4">
-            <div class="bg-green-500 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/application/list?status=Approved" class="stat-card" style="text-decoration:none;">
+            <div class="stat-icon ic-green">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
             </div>
             <div>
-                <p class="text-slate-400 text-sm">Approved</p>
-                <p class="text-2xl font-bold text-white">{{ approved }}</p>
+                <p class="stat-label">Approved</p>
+                <p class="stat-value">{{ approved }}</p>
             </div>
-        </div>
+        </a>
 
-        <!-- Rejected -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-5 flex items-center gap-4">
-            <div class="bg-red-500 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/application/list?status=Rejected" class="stat-card" style="text-decoration:none;">
+            <div class="stat-icon ic-red">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </div>
             <div>
-                <p class="text-slate-400 text-sm">Rejected</p>
-                <p class="text-2xl font-bold text-white">{{ rejected }}</p>
+                <p class="stat-label">Rejected</p>
+                <p class="stat-value">{{ rejected }}</p>
             </div>
-        </div>
+        </a>
+
+    </div>
 
     </div>
 </div>
+
 {% endblock %}

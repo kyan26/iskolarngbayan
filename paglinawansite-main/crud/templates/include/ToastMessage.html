@@ -1,16 +1,16 @@
 {% if messages %}
 {% for message in messages %}
 <div id="toast-{{ forloop.counter }}"
-    class="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-sm font-medium
-    {% if message.tags == 'success' %} bg-green-500 text-white
-    {% elif message.tags == 'error' %} bg-red-500 text-white
-    {% else %} bg-blue-500 text-white {% endif %}">
+    style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);
+    {% if message.tags == 'success' %}background:#10B981;color:#fff;
+    {% elif message.tags == 'error' %}background:#EF4444;color:#fff;
+    {% else %}background:#4F8EF7;color:#fff;{% endif %}">
     {% if message.tags == 'success' %}
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
     </svg>
     {% else %}
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
     </svg>
     {% endif %}

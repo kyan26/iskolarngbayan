@@ -16,8 +16,8 @@
             class="w-full sm:w-72 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
     </form>
 
-    <div class="rounded-xl overflow-hidden border border-[#334155]">
-        <table class="w-full text-sm text-left">
+    <div class="rounded-xl overflow-x-auto border border-[#334155]">
+        <table class="w-full min-w-max text-sm text-left">
             <thead class="bg-[#6366f1] text-white">
                 <tr>
                     <th class="px-6 py-3">#</th>
@@ -38,9 +38,11 @@
                     <td class="px-6 py-4 text-slate-300">{{ scholarship.slots }}</td>
                     <td class="px-6 py-4 text-slate-400">{{ scholarship.start_date|date:"M d, Y" }}</td>
                     <td class="px-6 py-4 text-slate-400">{{ scholarship.end_date|date:"M d, Y" }}</td>
-                    <td class="px-6 py-4 flex gap-2">
-                        <a href="/scholarship/edit/{{ scholarship.scholarship_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Edit</a>
-                        <a href="/scholarship/delete/{{ scholarship.scholarship_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <a href="/scholarship/edit/{{ scholarship.scholarship_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Edit</a>
+                            <a href="/scholarship/delete/{{ scholarship.scholarship_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

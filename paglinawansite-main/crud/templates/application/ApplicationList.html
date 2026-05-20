@@ -7,58 +7,71 @@
 
 <div class="sm:ml-64 mt-14 p-6">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white">Application List</h1>
-        <a href="/application/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Add Application</a>
+        <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Application List</h1>
+        <a href="/application/add"
+            style="background:linear-gradient(135deg,#4F8EF7,#7C5CFC);color:#fff;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:600;text-decoration:none">
+            + Add Application
+        </a>
     </div>
 
-    <form method="GET" class="mb-4">
-        <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search applications..."
-            class="w-full sm:w-72 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+    <form method="GET" style="margin-bottom:16px">
+        <input type="text" name="search" value="{{ search|default:'' }}"
+            placeholder="Search scholar, scholarship, status..."
+            style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text-primary);font-size:13px;border-radius:9px;padding:10px 14px;outline:none;box-sizing:border-box">
     </form>
 
-    <div class="rounded-xl overflow-hidden border border-[#334155]">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-[#6366f1] text-white">
-                <tr>
-                    <th class="px-6 py-3">#</th>
-                    <th class="px-6 py-3">Scholar</th>
-                    <th class="px-6 py-3">Scholarship</th>
-                    <th class="px-6 py-3">Status</th>
-                    <th class="px-6 py-3">Applied</th>
-                    <th class="px-6 py-3">Actions</th>
+    <div style="border:1px solid var(--border);border-radius:12px;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px">
+            <thead>
+                <tr style="background:#4F46E5">
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">#</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Scholar</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Scholarship</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Status</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Applied Date</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for app in applications %}
-                <tr class="bg-[#1e293b] border-b border-[#334155] hover:bg-[#253047] transition">
-                    <td class="px-6 py-4 text-slate-400">{{ forloop.counter }}</td>
-                    <td class="px-6 py-4 text-white font-medium">{{ app.scholar.full_name }}</td>
-                    <td class="px-6 py-4 text-slate-300">{{ app.scholarship.name }}</td>
-                    <td class="px-6 py-4">
+                <tr style="background:var(--table-row);border-bottom:1px solid var(--border)">
+                    <td style="padding:12px 18px;color:var(--text-muted);white-space:nowrap">{{ forloop.counter }}</td>
+                    <td style="padding:12px 18px;color:var(--text-primary);font-weight:500;white-space:nowrap">{{ app.scholar.full_name }}</td>
+                    <td style="padding:12px 18px;color:var(--text-primary);white-space:nowrap">{{ app.scholarship.name }}</td>
+                    <td style="padding:12px 18px;white-space:nowrap">
                         {% if app.status == 'approved' %}
-                        <span class="bg-green-900 text-green-300 text-xs font-medium px-2.5 py-1 rounded-full">Approved</span>
+                        <span style="background:rgba(74,222,128,0.15);color:#4ADE80;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Approved</span>
                         {% elif app.status == 'rejected' %}
-                        <span class="bg-red-900 text-red-300 text-xs font-medium px-2.5 py-1 rounded-full">Rejected</span>
+                        <span style="background:rgba(248,113,113,0.15);color:#F87171;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Rejected</span>
                         {% elif app.status == 'under_review' %}
-                        <span class="bg-blue-900 text-blue-300 text-xs font-medium px-2.5 py-1 rounded-full">Under Review</span>
+                        <span style="background:rgba(96,165,250,0.15);color:#60A5FA;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Under Review</span>
                         {% elif app.status == 'renewal' %}
-                        <span class="bg-purple-900 text-purple-300 text-xs font-medium px-2.5 py-1 rounded-full">Renewal</span>
+                        <span style="background:rgba(167,139,250,0.15);color:#A78BFA;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Renewal</span>
                         {% else %}
-                        <span class="bg-yellow-900 text-yellow-300 text-xs font-medium px-2.5 py-1 rounded-full">Pending</span>
+                        <span style="background:rgba(251,191,36,0.15);color:#FCD34D;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Pending</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-slate-400">{{ app.applied_at|date:"M d, Y" }}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex gap-2">
-                            <a href="/application/{{ app.application_id }}/documents" class="bg-sky-500 hover:bg-sky-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Docs</a>
-                            <a href="/application/edit/{{ app.application_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Edit</a>
-                            <a href="/application/delete/{{ app.application_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                    <td style="padding:12px 18px;color:var(--text-muted);white-space:nowrap">{{ app.applied_at|date:"M d, Y" }}</td>
+                    <td style="padding:12px 18px;white-space:nowrap">
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <a href="/application/{{ app.application_id }}/documents"
+                                style="background:rgba(79,142,247,0.1);color:#4F8EF7;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;text-decoration:none">
+                                Docs
+                            </a>
+                            <a href="/application/edit/{{ app.application_id }}"
+                                style="background:rgba(251,191,36,0.15);color:#FCD34D;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;text-decoration:none">
+                                Edit
+                            </a>
+                            <a href="/application/delete/{{ app.application_id }}"
+                                style="background:rgba(248,113,113,0.15);color:#F87171;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;text-decoration:none">
+                                Delete
+                            </a>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
-                <tr class="bg-[#1e293b]">
-                    <td colspan="6" class="px-6 py-8 text-center text-slate-400">No applications found.</td>
+                <tr style="background:var(--table-row)">
+                    <td colspan="6" style="padding:48px;text-align:center;color:var(--text-muted)">No applications found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -66,16 +79,16 @@
     </div>
 
     {% if page_obj.has_other_pages %}
-    <div class="flex items-center justify-between mt-4">
-        <p class="text-slate-400 text-sm">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} applications</p>
-        <div class="flex gap-2">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:var(--text-muted)">
+        <span>Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}</span>
+        <div style="display:flex;gap:6px">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}"
-                class="bg-[#1e293b] border border-[#334155] text-white text-sm px-3 py-1.5 rounded hover:bg-[#334155] transition">Prev</a>
+                style="background:var(--surface);border:1px solid var(--border);color:var(--text-primary);padding:6px 14px;border-radius:7px;text-decoration:none;font-size:13px">Prev</a>
             {% endif %}
             {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}"
-                class="bg-[#1e293b] border border-[#334155] text-white text-sm px-3 py-1.5 rounded hover:bg-[#334155] transition">Next</a>
+                style="background:var(--surface);border:1px solid var(--border);color:var(--text-primary);padding:6px 14px;border-radius:7px;text-decoration:none;font-size:13px">Next</a>
             {% endif %}
         </div>
     </div>

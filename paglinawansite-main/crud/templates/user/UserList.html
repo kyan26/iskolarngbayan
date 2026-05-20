@@ -11,14 +11,13 @@
         <a href="/user/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Add User</a>
     </div>
 
-    <!-- Search -->
     <form method="GET" class="mb-4">
         <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Search users..."
             class="w-full sm:w-72 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
     </form>
 
-    <div class="rounded-xl overflow-hidden border border-[#334155]">
-        <table class="w-full text-sm text-left">
+    <div class="rounded-xl overflow-x-auto border border-[#334155]">
+        <table class="w-full min-w-max text-sm text-left">
             <thead class="bg-[#6366f1] text-white">
                 <tr>
                     <th class="px-6 py-3">#</th>
@@ -33,24 +32,17 @@
                 {% for user in users %}
                 <tr class="bg-[#1e293b] border-b border-[#334155] hover:bg-[#253047] transition">
                     <td class="px-6 py-4 text-slate-400">{{ forloop.counter }}</td>
-                    <td class="px-6 py-4 flex items-center gap-3">
-                        {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" class="w-9 h-9 rounded-full object-cover">
-                        {% else %}
-                        <div class="w-9 h-9 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold text-sm">
-                            {{ user.full_name|first }}
-                        </div>
-                        {% endif %}
-                        <span class="text-white font-medium">{{ user.full_name }}</span>
-                    </td>
+                    <td class="px-6 py-4 text-white font-medium">{{ user.full_name }}</td>
                     <td class="px-6 py-4">
                         <span class="bg-indigo-900 text-indigo-300 text-xs font-medium px-2.5 py-1 rounded-full">{{ user.role.role }}</span>
                     </td>
                     <td class="px-6 py-4 text-slate-400">{{ user.email }}</td>
                     <td class="px-6 py-4 text-slate-400">{{ user.username }}</td>
-                    <td class="px-6 py-4 flex gap-2">
-                        <a href="/user/edit/{{ user.user_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Edit</a>
-                        <a href="/user/delete/{{ user.user_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <a href="/user/edit/{{ user.user_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Edit</a>
+                            <a href="/user/delete/{{ user.user_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
@@ -62,7 +54,6 @@
         </table>
     </div>
 
-    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div class="flex items-center justify-between mt-4">
         <p class="text-slate-400 text-sm">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users</p>

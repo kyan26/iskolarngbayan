@@ -7,11 +7,40 @@ from django.core.paginator import Paginator
 import re
 import os
 from datetime import date, datetime
-from .models import Roles, Users, Scholarships, ScholarProfiles, Applications, Documents
+from .models import Roles, Users, Scholarships, ScholarProfiles, Applications, Documents, Grades, Announcements
+
+# ─── ACCESS HELPERS ─────────────────────────────────────────
+def get_session_user(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return None
+    try:
+        return Users.objects.select_related('role').get(user_id=user_id)
+    except Users.DoesNotExist:
+        return None
+
+def admin_only(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('/login')
+    if user.role.role != 'Admin':
+        messages.error(request, 'Access denied. Admins only.')
+        return redirect('/profile')
+    return None
+
+def login_required(request):
+    user = get_session_user(request)
+    if not user:
+        return redirect('/login')
+    return None
+
 
 # ─── DASHBOARD ─────────────────────────────────────────────
 def dashboard(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         total_scholars = ScholarProfiles.objects.count()
         total_scholarships = Scholarships.objects.count()
         total_applications = Applications.objects.count()
@@ -34,6 +63,9 @@ def dashboard(request):
 # ─── ROLES ─────────────────────────────────────────────────
 def role_list(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         roles = Roles.objects.all()
         data = {'roles': roles}
         return render(request, 'role/RoleList.html', data)
@@ -42,6 +74,9 @@ def role_list(request):
 
 def role_add(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         if request.method == 'POST':
             role = request.POST.get('role', '').strip().title()
             if not role:
@@ -59,6 +94,9 @@ def role_add(request):
 
 def role_edit(request, role_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         roleObj = Roles.objects.get(pk=role_id)
         if request.method == 'POST':
             role = request.POST.get('role', '').strip().title()
@@ -78,6 +116,9 @@ def role_edit(request, role_id):
 
 def role_delete(request, role_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         roleObj = Roles.objects.get(pk=role_id)
         if request.method == 'POST':
             roleObj.delete()
@@ -91,6 +132,9 @@ def role_delete(request, role_id):
 # ─── USERS ─────────────────────────────────────────────────
 def user_list(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         search = request.GET.get('search')
         userObj = Users.objects.select_related('role').order_by('-user_id')
         if search:
@@ -110,6 +154,9 @@ def user_list(request):
 
 def user_add(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         if request.method == 'POST':
             fullName = request.POST.get('full_name', '').strip().title()
             role = request.POST.get('role', '').strip()
@@ -184,12 +231,16 @@ def user_add(request):
 
 def user_edit(request, user_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         user = Users.objects.get(user_id=user_id)
         if request.method == 'POST':
             fullName = request.POST.get('full_name', '').strip().title()
             role = request.POST.get('role', '').strip()
             email = request.POST.get('email', '').strip()
             username = request.POST.get('username', '').strip()
+            gender = request.POST.get('gender', '').strip()
 
             errors = []
 
@@ -224,13 +275,14 @@ def user_edit(request, user_id):
                     messages.error(request, error)
                 return render(request, 'user/UserEdit.html', {
                     'user': user,
-                    'roles': Roles.objects.all()
+                    'roles': Roles.objects.all(),
                 })
 
             user.full_name = fullName
             user.role_id = role
             user.email = email
             user.username = username
+            user.gender = gender
 
             if request.FILES.get('profile_picture'):
                 if user.profile_picture:
@@ -241,12 +293,19 @@ def user_edit(request, user_id):
             user.save()
             messages.success(request, 'User updated successfully!')
             return redirect('/user/list')
-        return render(request, 'user/UserEdit.html', {'user': user, 'roles': Roles.objects.all()})
+
+        return render(request, 'user/UserEdit.html', {
+            'user': user,
+            'roles': Roles.objects.all(),
+        })
     except Exception as e:
         return HttpResponse(f'Error occurred during edit user: {e}')
 
 def user_delete(request, user_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         user = Users.objects.get(user_id=user_id)
         if request.method == 'POST':
             user.delete()
@@ -260,6 +319,9 @@ def user_delete(request, user_id):
 # ─── SCHOLARSHIPS ───────────────────────────────────────────
 def scholarship_list(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         search = request.GET.get('search')
         scholarships = Scholarships.objects.order_by('-scholarship_id')
         if search:
@@ -277,6 +339,9 @@ def scholarship_list(request):
 
 def scholarship_add(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         if request.method == 'POST':
             name = request.POST.get('name', '').strip()
             description = request.POST.get('description', '').strip()
@@ -329,6 +394,9 @@ def scholarship_add(request):
 
 def scholarship_edit(request, scholarship_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         scholarship = Scholarships.objects.get(pk=scholarship_id)
         if request.method == 'POST':
             name = request.POST.get('name', '').strip()
@@ -381,6 +449,9 @@ def scholarship_edit(request, scholarship_id):
 
 def scholarship_delete(request, scholarship_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         scholarship = Scholarships.objects.get(pk=scholarship_id)
         if request.method == 'POST':
             scholarship.delete()
@@ -394,6 +465,9 @@ def scholarship_delete(request, scholarship_id):
 # ─── SCHOLAR PROFILES ───────────────────────────────────────
 def scholar_list(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         search = request.GET.get('search')
         scholars = ScholarProfiles.objects.select_related('user').order_by('-scholar_id')
         if search:
@@ -413,21 +487,34 @@ def scholar_list(request):
 
 def scholar_add(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        # Get users with Scholar role that don't have a profile yet
+        existing_scholar_user_ids = ScholarProfiles.objects.values_list('user_id', flat=True)
+        available_users = Users.objects.filter(role__role='Scholar').exclude(user_id__in=existing_scholar_user_ids)
+
         if request.method == 'POST':
-            fullName = request.POST.get('full_name', '').strip().title()
+            user_id = request.POST.get('user_id', '').strip()
+            userObj = Users.objects.get(pk=user_id)
+            fullName = userObj.full_name
             phone = request.POST.get('phone', '').strip()
             address = request.POST.get('address', '').strip().title()
             school = request.POST.get('school', '').strip().title()
             course = request.POST.get('course', '').strip().title()
             yearLevel = request.POST.get('year_level', '').strip()
             gpa = request.POST.get('gpa', '').strip()
-            user_id = request.POST.get('user', '').strip()
             photo = request.FILES.get('photo')
 
             errors = []
 
-            if not fullName:
-                errors.append('Full name is required.')
+            if not user_id:
+                errors.append('Please select a user.')
+            elif not Users.objects.filter(pk=user_id, role__role='Scholar').exists():
+                errors.append('Selected user is invalid.')
+            elif ScholarProfiles.objects.filter(user_id=user_id).exists():
+                errors.append('This user already has a scholar profile.')
+
             if not phone:
                 errors.append('Phone number is required.')
             elif not re.fullmatch(r'\d+', phone):
@@ -444,15 +531,11 @@ def scholar_add(request):
                 errors.append('Year level is required.')
             if not gpa:
                 errors.append('GPA is required.')
-            if not user_id:
-                errors.append('User is required.')
-            elif ScholarProfiles.objects.filter(user_id=user_id).exists():
-                errors.append('This user already has a scholar profile.')
 
             if errors:
                 for error in errors:
                     messages.error(request, error)
-                return render(request, 'scholar/ScholarAdd.html', {'users': Users.objects.all()})
+                return render(request, 'scholar/ScholarAdd.html', {'available_users': available_users})
 
             ScholarProfiles.objects.create(
                 user=Users.objects.get(pk=user_id),
@@ -467,12 +550,16 @@ def scholar_add(request):
             )
             messages.success(request, 'Scholar added successfully!')
             return redirect('/scholar/list')
-        return render(request, 'scholar/ScholarAdd.html', {'users': Users.objects.all()})
+
+        return render(request, 'scholar/ScholarAdd.html', {'available_users': available_users})
     except Exception as e:
         return HttpResponse(f'Error occurred during add scholar: {e}')
 
 def scholar_edit(request, scholar_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         scholar = ScholarProfiles.objects.get(pk=scholar_id)
         if request.method == 'POST':
             fullName = request.POST.get('full_name', '').strip().title()
@@ -532,6 +619,9 @@ def scholar_edit(request, scholar_id):
 
 def scholar_delete(request, scholar_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         scholar = ScholarProfiles.objects.get(pk=scholar_id)
         if request.method == 'POST':
             scholar.delete()
@@ -545,6 +635,9 @@ def scholar_delete(request, scholar_id):
 # ─── APPLICATIONS ───────────────────────────────────────────
 def application_list(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         search = request.GET.get('search')
         applications = Applications.objects.select_related('scholar', 'scholarship').order_by('-application_id')
         if search:
@@ -562,6 +655,12 @@ def application_list(request):
 
 def application_add(request):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        already_applied_ids = Applications.objects.values_list('scholar_id', flat=True)
+        available_scholars = ScholarProfiles.objects.exclude(scholar_id__in=already_applied_ids)
+
         if request.method == 'POST':
             scholar_id = request.POST.get('scholar', '').strip()
             scholarship_id = request.POST.get('scholarship', '').strip()
@@ -580,7 +679,7 @@ def application_add(request):
                 for error in errors:
                     messages.error(request, error)
                 return render(request, 'application/ApplicationAdd.html', {
-                    'scholars': ScholarProfiles.objects.all(),
+                    'scholars': available_scholars,
                     'scholarships': Scholarships.objects.all()
                 })
 
@@ -591,8 +690,9 @@ def application_add(request):
             )
             messages.success(request, 'Application submitted successfully!')
             return redirect('/application/list')
+
         return render(request, 'application/ApplicationAdd.html', {
-            'scholars': ScholarProfiles.objects.all(),
+            'scholars': available_scholars,
             'scholarships': Scholarships.objects.all()
         })
     except Exception as e:
@@ -600,6 +700,9 @@ def application_add(request):
 
 def application_edit(request, application_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         application = Applications.objects.get(pk=application_id)
         if request.method == 'POST':
             status = request.POST.get('status', '').strip()
@@ -620,6 +723,9 @@ def application_edit(request, application_id):
 
 def application_delete(request, application_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         application = Applications.objects.get(pk=application_id)
         if request.method == 'POST':
             application.delete()
@@ -633,6 +739,9 @@ def application_delete(request, application_id):
 # ─── DOCUMENTS ──────────────────────────────────────────────
 def document_list(request, application_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         application = Applications.objects.get(pk=application_id)
         documents = Documents.objects.filter(application=application)
         data = {'documents': documents, 'application': application}
@@ -642,6 +751,9 @@ def document_list(request, application_id):
 
 def document_add(request, application_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         application = Applications.objects.get(pk=application_id)
         if request.method == 'POST':
             name = request.POST.get('name', '').strip()
@@ -667,6 +779,9 @@ def document_add(request, application_id):
 
 def document_delete(request, document_id):
     try:
+        guard = admin_only(request)
+        if guard: return guard
+
         document = Documents.objects.get(pk=document_id)
         application_id = document.application.application_id
         if request.method == 'POST':
@@ -680,19 +795,236 @@ def document_delete(request, document_id):
     except Exception as e:
         return HttpResponse(f'Error occurred during delete document: {e}')
 
+def document_edit(request, document_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        document = Documents.objects.get(pk=document_id)
+        application_id = document.application.application_id
+
+        if request.method == 'POST':
+            name = request.POST.get('name', '').strip()
+            file = request.FILES.get('file')
+
+            errors = []
+            if not name:
+                errors.append('Document name is required.')
+
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                return render(request, 'document/DocumentEdit.html', {'document': document})
+
+            document.name = name
+
+            if file:
+                if document.file:
+                    if os.path.isfile(document.file.path):
+                        os.remove(document.file.path)
+                document.file = file
+
+            document.save()
+            messages.success(request, 'Document updated successfully!')
+            return redirect(f'/application/{application_id}/documents')
+
+        return render(request, 'document/DocumentEdit.html', {'document': document})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during edit document: {e}')
+
+
+# ─── ANNOUNCEMENTS ──────────────────────────────────────────
+def announcement_list(request):
+    try:
+        guard = login_required(request)
+        if guard: return guard
+
+        announcements = Announcements.objects.select_related('posted_by').order_by('-created_at')
+        return render(request, 'announcement/AnnouncementList.html', {'announcements': announcements})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during load announcements: {e}')
+
+def announcement_add(request):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        user_id = request.session.get('user_id')
+        if request.method == 'POST':
+            title = request.POST.get('title', '').strip()
+            content = request.POST.get('content', '').strip()
+            errors = []
+            if not title:
+                errors.append('Title is required.')
+            if not content:
+                errors.append('Content is required.')
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                return render(request, 'announcement/AnnouncementAdd.html', {
+                    'form_data': {'title': title, 'content': content}
+                })
+            Announcements.objects.create(
+                title=title,
+                content=content,
+                posted_by=Users.objects.get(user_id=user_id)
+            )
+            messages.success(request, 'Announcement posted successfully!')
+            return redirect('/announcement/list')
+        return render(request, 'announcement/AnnouncementAdd.html')
+    except Exception as e:
+        return HttpResponse(f'Error occurred during add announcement: {e}')
+
+def announcement_delete(request, announcement_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        announcement = Announcements.objects.get(pk=announcement_id)
+        if request.method == 'POST':
+            announcement.delete()
+            messages.success(request, 'Announcement deleted successfully!')
+            return redirect('/announcement/list')
+        return render(request, 'announcement/AnnouncementDelete.html', {'announcement': announcement})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during delete announcement: {e}')
+
+
+# ─── GRADES ─────────────────────────────────────────────────
+def grade_list(request, scholar_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        scholar = ScholarProfiles.objects.get(pk=scholar_id)
+        grades = Grades.objects.filter(scholar=scholar).order_by('-created_at')
+        return render(request, 'grade/GradeList.html', {'grades': grades, 'scholar': scholar})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during load grades: {e}')
+
+def grade_add(request, scholar_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        scholar = ScholarProfiles.objects.get(pk=scholar_id)
+        if request.method == 'POST':
+            subject = request.POST.get('subject', '').strip()
+            grade = request.POST.get('grade', '').strip()
+            semester = request.POST.get('semester', '').strip()
+            school_year = request.POST.get('school_year', '').strip()
+            errors = []
+            if not subject:
+                errors.append('Subject is required.')
+            if not grade:
+                errors.append('Grade is required.')
+            if not semester:
+                errors.append('Semester is required.')
+            if not school_year:
+                errors.append('School year is required.')
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                return render(request, 'grade/GradeAdd.html', {'scholar': scholar})
+            Grades.objects.create(
+                scholar=scholar,
+                subject=subject,
+                grade=grade,
+                semester=semester,
+                school_year=school_year
+            )
+            messages.success(request, 'Grade added successfully!')
+            return redirect(f'/scholar/{scholar_id}/grades')
+        return render(request, 'grade/GradeAdd.html', {'scholar': scholar})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during add grade: {e}')
+
+def grade_delete(request, grade_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        gradeObj = Grades.objects.get(pk=grade_id)
+        scholar_id = gradeObj.scholar.scholar_id
+        if request.method == 'POST':
+            gradeObj.delete()
+            messages.success(request, 'Grade deleted successfully!')
+            return redirect(f'/scholar/{scholar_id}/grades')
+        return render(request, 'grade/GradeDelete.html', {'grade': gradeObj})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during delete grade: {e}')
+
+def my_grades(request):
+    try:
+        guard = login_required(request)
+        if guard: return guard
+
+        user_id = request.session.get('user_id')
+        user = Users.objects.get(user_id=user_id)
+        scholar = ScholarProfiles.objects.filter(user=user).first()
+        grades = Grades.objects.filter(scholar=scholar).order_by('-created_at') if scholar else []
+        return render(request, 'grade/MyGrades.html', {'grades': grades, 'scholar': scholar})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during load grades: {e}')
+
+
+# ─── SCHOLAR PORTAL ─────────────────────────────────────────
+def scholar_my_applications(request):
+    try:
+        guard = login_required(request)
+        if guard: return guard
+
+        user_id = request.session.get('user_id')
+        user = Users.objects.get(user_id=user_id)
+        scholar = ScholarProfiles.objects.filter(user=user).first()
+        applications = Applications.objects.filter(scholar=scholar).select_related('scholarship').order_by('-applied_at') if scholar else []
+
+        return render(request, 'scholar/MyApplications.html', {
+            'applications': applications,
+            'scholar': scholar
+        })
+    except Exception as e:
+        return HttpResponse(f'Error occurred during load applications: {e}')
+
+def scholar_my_documents(request, application_id):
+    try:
+        guard = login_required(request)
+        if guard: return guard
+
+        user_id = request.session.get('user_id')
+        user = Users.objects.get(user_id=user_id)
+        scholar = ScholarProfiles.objects.filter(user=user).first()
+
+        application = Applications.objects.get(pk=application_id)
+
+        if not scholar or application.scholar != scholar:
+            messages.error(request, 'Access denied.')
+            return redirect('/scholar/my-applications')
+
+        documents = Documents.objects.filter(application=application)
+        return render(request, 'scholar/MyDocuments.html', {
+            'documents': documents,
+            'application': application
+        })
+    except Exception as e:
+        return HttpResponse(f'Error occurred during load documents: {e}')
+
 
 # ─── AUTH ───────────────────────────────────────────────────
 def login_view(request):
     try:
         if request.session.get('user_id'):
-            return redirect('/profile')
+            user = get_session_user(request)
+            if user:
+                if user.role.role == 'Scholar':
+                    return redirect('/profile')
+                return redirect('/dashboard')
 
         if request.method == 'POST':
             username = request.POST.get('username', '').strip()
             password = request.POST.get('password', '')
 
             errors = []
-
             if not username:
                 errors.append('Username is required.')
             if not password:
@@ -711,7 +1043,9 @@ def login_view(request):
                     request.session['user_role'] = user.role.role
                     request.session['user_pic'] = user.profile_picture.url if user.profile_picture else None
                     messages.success(request, f'Welcome back, {user.full_name}!')
-                    return redirect('/profile')
+                    if user.role.role == 'Scholar':
+                        return redirect('/profile')
+                    return redirect('/dashboard')
                 else:
                     messages.error(request, 'Invalid username or password.')
                     return render(request, 'auth/Login.html', {'form_data': {'username': username}})
@@ -730,10 +1064,10 @@ def logout_view(request):
 
 def profile_view(request):
     try:
-        user_id = request.session.get('user_id')
-        if not user_id:
-            return redirect('/login')
+        guard = login_required(request)
+        if guard: return guard
 
+        user_id = request.session.get('user_id')
         user = Users.objects.select_related('role').get(user_id=user_id)
         scholar = ScholarProfiles.objects.filter(user=user).first()
         applications = Applications.objects.filter(scholar=scholar).select_related('scholarship') if scholar else []
@@ -746,3 +1080,41 @@ def profile_view(request):
         return render(request, 'auth/Profile.html', data)
     except Exception as e:
         return HttpResponse(f'Error occurred during profile load: {e}')
+
+def application_detail(request, application_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        application = Applications.objects.select_related('scholar', 'scholarship').get(pk=application_id)
+        documents = Documents.objects.filter(application=application)
+        data = {'application': application, 'documents': documents}
+        return render(request, 'application/ApplicationDetail.html', data)
+    except Exception as e:
+        return HttpResponse(f'Error occurred during load application: {e}')
+
+def application_approve(request, application_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        application = Applications.objects.get(pk=application_id)
+        application.status = 'approved'
+        application.save()
+        messages.success(request, 'Application approved successfully!')
+        return redirect(f'/application/{application_id}/detail')
+    except Exception as e:
+        return HttpResponse(f'Error occurred during approve: {e}')
+
+def application_reject(request, application_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+
+        application = Applications.objects.get(pk=application_id)
+        application.status = 'rejected'
+        application.save()
+        messages.success(request, 'Application rejected successfully!')
+        return redirect(f'/application/{application_id}/detail')
+    except Exception as e:
+        return HttpResponse(f'Error occurred during reject: {e}')

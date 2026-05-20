@@ -5,31 +5,43 @@
 {% include 'include/Sidebar.html' %}
 {% include 'include/ToastMessage.html' %}
 
-<div class="sm:ml-64 mt-14 p-6">
-    <div class="mb-6">
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
+    <div class="mb-6 text-center">
         <h1 class="text-2xl font-bold text-white">Upload Document</h1>
         <p class="text-slate-400 text-sm mt-1">{{ application.scholar.full_name }} — {{ application.scholarship.name }}</p>
     </div>
 
-    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 max-w-md">
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-300 mb-2">Document Name</label>
-                <input type="text" name="name" placeholder="e.g. Grade Slip, Certificate of Enrollment"
+                <label class="block text-sm font-medium text-slate-300 mb-2">Document Type <span class="text-red-400">*</span></label>
+                <select name="name"
                     class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                    <option value="" disabled selected>-- Select Document Type --</option>
+                    <option value="Grades/TOR">Grades / TOR (Transcript of Records)</option>
+                    <option value="Barangay Indigency">Barangay Indigency</option>
+                    <option value="Good Moral">Good Moral Certificate</option>
+                </select>
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-300 mb-2">File</label>
-                <input type="file" name="file"
+                <label class="block text-sm font-medium text-slate-300 mb-2">File <span class="text-red-400">*</span></label>
+                <input type="file" name="file" accept=".jpg,.jpeg,.png,.pdf"
                     class="w-full bg-[#0f172a] border border-[#334155] text-slate-400 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                <p class="text-slate-500 text-xs mt-1">Accepted: JPG, PNG, PDF</p>
             </div>
 
             <div class="flex gap-2 mt-6">
-                <button type="submit" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Upload</button>
-                <a href="/application/{{ application.application_id }}/documents" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Cancel</a>
+                <button type="submit"
+                    class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">
+                    Upload
+                </button>
+                <a href="/application/{{ application.application_id }}/documents"
+                   class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">
+                    Cancel
+                </a>
             </div>
         </form>
     </div>

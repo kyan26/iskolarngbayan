@@ -1,0 +1,42 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}Announcements{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-white">Announcements</h1>
+        {% if request.session.user_role == 'Admin' or request.session.user_role == 'Staff' %}
+        <a href="/announcement/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Post Announcement</a>
+        {% endif %}
+    </div>
+
+    <div class="space-y-4">
+        {% for announcement in announcements %}
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <h2 class="text-white font-bold text-lg mb-2">{{ announcement.title }}</h2>
+                    <p class="text-slate-300 text-sm leading-relaxed">{{ announcement.content }}</p>
+                    <div class="flex items-center gap-3 mt-4">
+                        <span class="text-slate-500 text-xs">Posted by {{ announcement.posted_by.full_name }}</span>
+                        <span class="text-slate-600 text-xs">•</span>
+                        <span class="text-slate-500 text-xs">{{ announcement.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                {% if request.session.user_role == 'Admin' or request.session.user_role == 'Staff' %}
+                <a href="/announcement/delete/{{ announcement.announcement_id }}"
+                    class="ml-4 bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-12 text-center">
+            <p class="text-slate-400">No announcements yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

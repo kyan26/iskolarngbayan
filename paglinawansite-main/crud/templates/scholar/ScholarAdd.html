@@ -5,31 +5,36 @@
 {% include 'include/Sidebar.html' %}
 {% include 'include/ToastMessage.html' %}
 
-<div class="sm:ml-64 mt-14 p-6">
-    <div class="mb-6">
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
+    <div class="mb-6 text-center">
         <h1 class="text-2xl font-bold text-white">Add Scholar</h1>
         <p class="text-slate-400 text-sm mt-1">Create a new scholar profile</p>
     </div>
 
-    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 max-w-2xl">
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Linked User Account</label>
-                    <select name="user" class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
-                        <option value="">-- Select User --</option>
-                        {% for user in users %}
-                        <option value="{{ user.user_id }}">{{ user.full_name }} ({{ user.username }})</option>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Select User</label>
+                    <select name="user_id" id="user_select" onchange="fillName(this)"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                        <option value="">-- Select a Scholar User --</option>
+                        {% for user in available_users %}
+                            <option value="{{ user.user_id }}" data-name="{{ user.full_name }}">
+                                {{ user.full_name }} ({{ user.username }})
+                            </option>
+                        {% empty %}
+                            <option value="" disabled>No available scholar users</option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div>
+                <!-- Auto-filled name display -->
+                <div class="sm:col-span-2" id="name-display" style="display:none;">
                     <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-                    <input type="text" name="full_name" placeholder="Juan Dela Cruz"
-                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                    <div class="w-full bg-[#0f172a] border border-[#334155] text-slate-400 text-sm rounded-lg px-4 py-2.5" id="name-text"></div>
                 </div>
 
                 <div>
@@ -58,13 +63,13 @@
 
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Year Level</label>
-                    <select name="year_level" class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                    <select name="year_level"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
                         <option value="">-- Select Year --</option>
                         <option value="1st Year">1st Year</option>
                         <option value="2nd Year">2nd Year</option>
                         <option value="3rd Year">3rd Year</option>
                         <option value="4th Year">4th Year</option>
-                        <option value="5th Year">5th Year</option>
                     </select>
                 </div>
 
@@ -89,4 +94,20 @@
         </form>
     </div>
 </div>
+
+<script>
+    function fillName(select) {
+        const nameDisplay = document.getElementById('name-display');
+        const nameText = document.getElementById('name-text');
+        const selected = select.options[select.selectedIndex];
+        if (selected.value) {
+            nameText.textContent = selected.getAttribute('data-name');
+            nameDisplay.style.display = 'block';
+        } else {
+            nameDisplay.style.display = 'none';
+            nameText.textContent = '';
+        }
+    }
+</script>
+
 {% endblock %}

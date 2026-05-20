@@ -5,12 +5,12 @@
 {% include 'include/Sidebar.html' %}
 {% include 'include/ToastMessage.html' %}
 
-<div class="sm:ml-64 mt-14 p-6">
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-white">Delete Scholar</h1>
     </div>
 
-    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 max-w-md">
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
         <p class="text-slate-300 mb-2">Are you sure you want to delete this scholar?</p>
         <p class="text-white font-bold text-lg mb-1">{{ scholar.full_name }}</p>
         <p class="text-slate-400 text-sm mb-6">{{ scholar.school }} — {{ scholar.course }}</p>

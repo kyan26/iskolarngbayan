@@ -4,13 +4,13 @@
 {% include "include/Sidebar.html" %}
 {% include "include/ToastMessage.html" %}
 
-<div class="p-4 sm:ml-64 mt-14">
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-white">Edit User</h1>
         <p class="text-sm text-slate-400">Update user information</p>
     </div>
 
-    <div class="max-w-2xl bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
@@ -69,18 +69,12 @@
             <!-- Gender -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-slate-300 mb-2">Gender</label>
-                <select name="gender" required
-                    class="w-full px-4 py-2.5 pr-10 bg-[#0f172a] border border-[#334155] text-white 
-                    text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none"
-                    style="appearance: none; -webkit-appearance: none; -moz-appearance: none;
-                    background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%2394a3b8%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E');
-                    background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 16px;">
-                    {% for gender in genders %}
-                    <option value="{{ gender.gender_id }}" {% if gender.gender_id == user.gender_id %}selected{% endif %}>
-                        {{ gender.gender }}
-                    </option>
-                    {% endfor %}
-                </select>
+                    <select name="gender" class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+                        <option value="">-- Select Gender --</option>
+                        <option value="Male" {% if user.gender == "Male" %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if user.gender == "Female" %}selected{% endif %}>Female</option>
+                        <option value="Other" {% if user.gender == "Other" %}selected{% endif %}>Other</option>
+                    </select>
             </div>
 
             <!-- Birth Date -->

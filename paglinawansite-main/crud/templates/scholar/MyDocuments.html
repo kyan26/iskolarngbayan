@@ -1,0 +1,64 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}My Documents{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold" style="color:var(--text-primary)">My Documents</h1>
+            <p style="color:var(--text-muted);font-size:13px;margin-top:4px">
+                {{ application.scholarship.name }}
+            </p>
+        </div>
+        <a href="/scholar/my-applications"
+            style="background:var(--surface-2);color:var(--text-primary);border:1px solid var(--border);border-radius:9px;padding:9px 18px;font-size:13px;font-weight:600;text-decoration:none">
+            ← Back
+        </a>
+    </div>
+
+    <!-- Read Only Notice -->
+    <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#7C3AED;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p style="color:#7C3AED;font-size:13px;margin:0">Documents are managed by staff. Contact your staff for any changes.</p>
+    </div>
+
+    <div style="border:1px solid var(--border);border-radius:12px;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:500px">
+            <thead>
+                <tr style="background:#4F46E5">
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left">#</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left">Document Name</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left">Uploaded</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left">View</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr style="background:var(--table-row);border-bottom:1px solid var(--border)">
+                    <td style="padding:12px 18px;color:var(--text-muted)">{{ forloop.counter }}</td>
+                    <td style="padding:12px 18px;color:var(--text-primary);font-weight:500">{{ doc.name }}</td>
+                    <td style="padding:12px 18px;color:var(--text-muted)">{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                    <td style="padding:12px 18px">
+                        <a href="{{ doc.file.url }}" target="_blank"
+                            style="background:rgba(79,142,247,0.1);color:#4F8EF7;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none">
+                            View File
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr style="background:var(--table-row)">
+                    <td colspan="4" style="padding:48px;text-align:center;color:var(--text-muted)">
+                        No documents uploaded yet. Please contact your staff.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

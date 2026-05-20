@@ -5,12 +5,13 @@ from . import views
 
 urlpatterns = [
     # ─── AUTH ──────────────────────────────────
+    path('', views.login_view),
     path('login', views.login_view),
     path('logout', views.logout_view),
     path('profile', views.profile_view),
 
     # ─── DASHBOARD ─────────────────────────────
-    path('', views.dashboard),
+    path('dashboard', views.dashboard),
 
     # ─── ROLES ─────────────────────────────────
     path('role/list', views.role_list),
@@ -46,5 +47,27 @@ urlpatterns = [
     path('application/<int:application_id>/documents', views.document_list),
     path('application/<int:application_id>/documents/add', views.document_add),
     path('document/delete/<int:document_id>', views.document_delete),
+    path('document/edit/<int:document_id>', views.document_edit),
+
+    # ─── GRADES ─────────────────────────────────
+    path('scholar/<int:scholar_id>/grades', views.grade_list),
+    path('scholar/<int:scholar_id>/grades/add', views.grade_add),
+    path('grade/delete/<int:grade_id>', views.grade_delete),
+
+    # ─── ANNOUNCEMENTS ──────────────────────────
+    path('announcement/list', views.announcement_list),
+    path('announcement/add', views.announcement_add),
+    path('announcement/delete/<int:announcement_id>', views.announcement_delete),
+
+    # ─── SCHOLAR PORTAL ─────────────────────────
+    path('scholar/my-applications', views.scholar_my_applications),
+    path('scholar/my-grades', views.my_grades),
+    path('scholar/applications/<int:application_id>/documents', views.scholar_my_documents),
+    path('application/<int:application_id>/detail', views.application_detail),
+    
+    # ─── APPLICATIONS ─────────────────────────
+    path('application/<int:application_id>/approve', views.application_approve),
+    path('application/<int:application_id>/reject', views.application_reject),
+    
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
