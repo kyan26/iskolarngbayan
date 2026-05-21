@@ -1,0 +1,63 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}My Applications{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold" style="color:var(--text-primary)">My Applications</h1>
+    </div>
+
+    <div style="border:1px solid var(--border);border-radius:12px;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:650px">
+            <thead>
+                <tr style="background:#4F46E5">
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">#</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Scholarship</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Amount</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Status</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Applied</th>
+                    <th style="padding:12px 18px;color:#fff;font-weight:600;text-align:left;white-space:nowrap">Documents</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr style="background:var(--table-row);border-bottom:1px solid var(--border)">
+                    <td style="padding:12px 18px;color:var(--text-muted);white-space:nowrap">{{ forloop.counter }}</td>
+                    <td style="padding:12px 18px;color:var(--text-primary);font-weight:500;white-space:nowrap">{{ app.scholarship.name }}</td>
+                    <td style="padding:12px 18px;color:#4ADE80;font-weight:600;white-space:nowrap">₱{{ app.scholarship.amount }}</td>
+                    <td style="padding:12px 18px;white-space:nowrap">
+                        {% if app.status == 'approved' %}
+                        <span style="background:rgba(74,222,128,0.15);color:#4ADE80;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Approved</span>
+                        {% elif app.status == 'rejected' %}
+                        <span style="background:rgba(248,113,113,0.15);color:#F87171;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Rejected</span>
+                        {% elif app.status == 'under_review' %}
+                        <span style="background:rgba(96,165,250,0.15);color:#60A5FA;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Under Review</span>
+                        {% elif app.status == 'renewal' %}
+                        <span style="background:rgba(167,139,250,0.15);color:#A78BFA;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Renewal</span>
+                        {% else %}
+                        <span style="background:rgba(251,191,36,0.15);color:#FCD34D;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding:12px 18px;color:var(--text-muted);white-space:nowrap">{{ app.applied_at|date:"M d, Y" }}</td>
+                    <td style="padding:12px 18px;white-space:nowrap">
+                        <a href="/scholar/applications/{{ app.application_id }}/documents"
+                            style="background:rgba(79,142,247,0.1);color:#4F8EF7;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">
+                            View Docs
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr style="background:var(--table-row)">
+                    <td colspan="6" style="padding:48px;text-align:center;color:var(--text-muted)">
+                        No applications yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

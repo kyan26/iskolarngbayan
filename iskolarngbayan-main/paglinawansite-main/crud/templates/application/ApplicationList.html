@@ -1,0 +1,85 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}Application List{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-white">Application List</h1>
+        <a href="/application/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Add Application</a>
+    </div>
+
+    <form method="GET" class="mb-4">
+        <input type="text" name="search" value="{{ search|default:'' }}"
+            placeholder="Search scholar, scholarship, status..."
+            class="w-full sm:w-72 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+    </form>
+
+    <div class="rounded-xl overflow-x-auto border border-[#334155]">
+        <table class="w-full min-w-max text-sm text-left">
+            <thead class="bg-[#6366f1] text-white">
+                <tr>
+                    <th class="px-6 py-3">#</th>
+                    <th class="px-6 py-3">Scholar</th>
+                    <th class="px-6 py-3">Scholarship</th>
+                    <th class="px-6 py-3">Status</th>
+                    <th class="px-6 py-3">Applied Date</th>
+                    <th class="px-6 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr class="bg-[#1e293b] border-b border-[#334155] hover:bg-[#253047] transition">
+                    <td class="px-6 py-4 text-slate-400">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 text-white font-medium">{{ app.scholar.full_name }}</td>
+                    <td class="px-6 py-4 text-slate-400">{{ app.scholarship.name }}</td>
+                    <td class="px-6 py-4">
+                        {% if app.status == 'approved' %}
+                            <span class="isk-badge badge-approved">Approved</span>
+                        {% elif app.status == 'rejected' %}
+                            <span class="isk-badge badge-rejected">Rejected</span>
+                        {% elif app.status == 'under_review' %}
+                            <span class="isk-badge badge-review">Under Review</span>
+                        {% elif app.status == 'renewal' %}
+                            <span class="isk-badge badge-renewal">Renewal</span>
+                        {% else %}
+                            <span class="isk-badge badge-pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-slate-400">{{ app.applied_at|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <a href="/application/{{ app.application_id }}/documents" class="bg-blue-500 hover:bg-blue-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Docs</a>
+                            <a href="/application/edit/{{ app.application_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Edit</a>
+                            <a href="/application/delete/{{ app.application_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="bg-[#1e293b]">
+                    <td colspan="6" class="px-6 py-8 text-center text-slate-400">No applications found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="flex items-center justify-between mt-4">
+        <p class="text-slate-400 text-sm">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} applications</p>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}"
+                class="bg-[#1e293b] border border-[#334155] text-white text-sm px-3 py-1.5 rounded hover:bg-[#334155] transition">Prev</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}"
+                class="bg-[#1e293b] border border-[#334155] text-white text-sm px-3 py-1.5 rounded hover:bg-[#334155] transition">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,382 @@
+{% extends "layout/base.html" %}
+{% block 'title' %}Edit User{% endblock 'title' %}
+{% block 'content' %}
+{% include "include/Sidebar.html" %}
+{% include "include/ToastMessage.html" %}
+
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">Edit User</h1>
+        <p class="text-sm text-slate-400">Update user information</p>
+    </div>
+
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Profile Picture -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Profile Picture</label>
+                <div class="flex items-center gap-4">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile"
+                            id="imagePreview"
+                            class="h-20 w-20 rounded-full object-cover ring-2 ring-[#6366f1]">
+                    {% else %}
+                        <div id="avatarPlaceholder" class="h-20 w-20 rounded-full bg-[#334155] flex items-center justify-center text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <img id="imagePreview" src="#" alt="Preview"
+                            class="hidden h-20 w-20 rounded-full object-cover ring-2 ring-[#6366f1]">
+                    {% endif %}
+
+                    <div class="flex flex-col gap-2">
+                        <input type="file" name="profile_picture" accept="image/*"
+                            onchange="previewImage(event)"
+                            class="block text-sm text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg 
+                                   file:border-0 file:text-sm file:font-medium file:bg-[#6366f1] file:text-white 
+                                   hover:file:bg-[#818cf8] cursor-pointer">
+                        {% if user.profile_picture %}
+                        <a href="/user/delete-picture/{{ user.user_id }}"
+                            class="text-xs text-[#f43f5e] hover:text-rose-400 transition-colors">
+                            Remove picture
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                <input type="text" name="username" id="usernameInput" value="{{ user.username }}" required
+                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white 
+                           text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none transition-colors">
+                <p id="usernameFeedback" class="mt-1 text-xs hidden flex items-center gap-1"></p>
+            </div>
+
+            <!-- Full Name -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                <input type="text" name="full_name" value="{{ user.full_name }}" required
+                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white 
+                           text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+            </div>
+
+            <!-- Role -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Role</label>
+                <select name="role" class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+                    <option value="">-- Select Role --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.role_id }}" {% if user.role.role_id == role.role_id %}selected{% endif %}>{{ role.role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Gender -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Gender</label>
+                    <select name="gender" class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+                        <option value="">-- Select Gender --</option>
+                        <option value="Male" {% if user.gender == "Male" %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if user.gender == "Female" %}selected{% endif %}>Female</option>
+                        <option value="Other" {% if user.gender == "Other" %}selected{% endif %}>Other</option>
+                    </select>
+            </div>
+
+            <!-- Birth Date -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Birth Date</label>
+                <input type="date" name="birth_date" value="{{ user.birth_date|date:'Y-m-d' }}" required
+                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white 
+                           text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+            </div>
+
+            <!-- Address -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Address</label>
+                <textarea name="address" rows="3" required
+                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white 
+                           text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">{{ user.address }}</textarea>
+            </div>
+
+            <!-- Contact Number -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Contact Number</label>
+                <input type="text" name="contact_number" id="contactInput" value="{{ user.contact_number }}" maxlength="12" required
+                    oninput="validateContact(this)"
+                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white 
+                           text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+                <p id="contactFeedback" class="mt-1 text-xs hidden flex items-center gap-1"></p>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                <input type="email" name="email" id="emailInput" value="{{ user.email }}"
+                    oninput="validateEmail()"
+                    class="w-full px-4 py-2.5 bg-[#0f172a] border border-[#334155] text-white 
+                           text-sm rounded-lg focus:ring-2 focus:ring-[#6366f1] focus:border-[#6366f1] focus:outline-none">
+                <p id="emailFeedback" class="mt-1 text-xs hidden flex items-center gap-1"></p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3">
+                <button type="submit" id="submitBtn"
+                    class="bg-[#6366f1] hover:bg-[#818cf8] text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+                    Save Changes
+                </button>
+                <a href="/user/list"
+                    class="bg-[#334155] hover:bg-[#475569] text-slate-300 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<style>
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1) brightness(0.7);
+        cursor: pointer;
+    }
+</style>
+
+<script>
+function previewImage(event) {
+    const preview = document.getElementById('imagePreview');
+    const placeholder = document.getElementById('avatarPlaceholder');
+    const file = event.target.files[0];
+    if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('hidden');
+        if (placeholder) placeholder.classList.add('hidden');
+    }
+}
+
+// =====================
+// SHARED REFS
+// =====================
+const submitBtn = document.getElementById('submitBtn');
+const currentUserId = "{{ user.user_id }}";
+
+// =====================
+// USERNAME — real-time check
+// =====================
+const usernameInput = document.getElementById('usernameInput');
+const usernameFeedback = document.getElementById('usernameFeedback');
+const originalUsername = "{{ user.username }}".toLowerCase();
+
+let usernameDebounce = null;
+
+usernameInput.addEventListener('input', function () {
+    const value = this.value.trim();
+    clearTimeout(usernameDebounce);
+
+    if (!value || value.toLowerCase() === originalUsername) {
+        resetUsernameField();
+        return;
+    }
+
+    usernameDebounce = setTimeout(() => {
+        fetch(`/user/check-username/?username=${encodeURIComponent(value)}&user_id=${currentUserId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    usernameInput.style.borderColor = '#22c55e';
+                    usernameInput.style.boxShadow = '0 0 0 2px rgba(34,197,94,0.3)';
+                    usernameFeedback.innerHTML = `<span class="text-green-400">✓ Username is available.</span>`;
+                    usernameFeedback.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    usernameInput.style.borderColor = '#f43f5e';
+                    usernameInput.style.boxShadow = '0 0 0 2px rgba(244,63,94,0.3)';
+                    usernameFeedback.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#f43f5e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                        <span class="text-[#f43f5e]">✕ Username already exists, please choose another.</span>`;
+                    usernameFeedback.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            })
+            .catch(() => resetUsernameField());
+    }, 500);
+});
+
+function resetUsernameField() {
+    usernameInput.style.borderColor = '';
+    usernameInput.style.boxShadow = '';
+    usernameFeedback.innerHTML = '';
+    usernameFeedback.classList.add('hidden');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+}
+
+// =====================
+// ICON HELPERS
+// =====================
+const warningIcon = `
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#f43f5e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>`;
+
+// =====================
+// CONTACT NUMBER — real-time check
+// =====================
+const contactInput = document.getElementById('contactInput');
+const contactFeedback = document.getElementById('contactFeedback');
+const originalContact = "{{ user.contact_number }}";
+
+let contactDebounce = null;
+
+function validateContact(input) {
+    const value = input.value;
+    clearTimeout(contactDebounce);
+
+    // Reset if empty or unchanged
+    if (!value || value === originalContact) {
+        resetContactField();
+        return;
+    }
+
+    // Format checks first
+    if (/[^0-9]/.test(value)) {
+        setContactError('Numbers only.'); return;
+    }
+    if (!(value.startsWith('09') || value.startsWith('63'))) {
+        setContactError('Must start with 09 or 63.'); return;
+    }
+    if (value.startsWith('09') && value.length < 11) {
+        setContactError('Too short — must be 11 digits.'); return;
+    }
+    if (value.startsWith('09') && value.length > 11) {
+        setContactError('Too long — must be 11 digits.'); return;
+    }
+    if (value.startsWith('63') && value.length < 12) {
+        setContactError('Too short — must be 12 digits.'); return;
+    }
+    if (value.startsWith('63') && value.length > 12) {
+        setContactError('Too long — must be 12 digits.'); return;
+    }
+
+    // Format OK — check server for duplicates
+    contactDebounce = setTimeout(() => {
+        fetch(`/user/check-contact/?contact_number=${encodeURIComponent(value)}&user_id=${currentUserId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    contactInput.style.borderColor = '#22c55e';
+                    contactInput.style.boxShadow = '0 0 0 2px rgba(34,197,94,0.3)';
+                    contactFeedback.innerHTML = `<span class="text-green-400">✓ Contact number is available.</span>`;
+                    contactFeedback.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    setContactError('✕ Contact number already exists, please use another.');
+                }
+            })
+            .catch(() => resetContactField());
+    }, 500);
+}
+
+function setContactError(msg) {
+    contactInput.style.borderColor = '#f43f5e';
+    contactInput.style.boxShadow = '0 0 0 2px rgba(244,63,94,0.3)';
+    contactFeedback.innerHTML = `${warningIcon}<span class="text-[#f43f5e]">${msg}</span>`;
+    contactFeedback.classList.remove('hidden');
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+}
+
+function resetContactField() {
+    contactInput.style.borderColor = '';
+    contactInput.style.boxShadow = '';
+    contactFeedback.innerHTML = '';
+    contactFeedback.classList.add('hidden');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+}
+
+// =====================
+// EMAIL — real-time check
+// =====================
+const emailInput = document.getElementById('emailInput');
+const emailFeedback = document.getElementById('emailFeedback');
+const originalEmail = "{{ user.email }}".toLowerCase();
+
+let emailDebounce = null;
+
+emailInput.addEventListener('input', function () {
+    const value = this.value.trim();
+    clearTimeout(emailDebounce);
+
+    // Reset if empty or unchanged
+    if (!value || value.toLowerCase() === originalEmail) {
+        resetEmailField();
+        return;
+    }
+
+    // Basic format check first
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+        emailInput.style.borderColor = '#f43f5e';
+        emailInput.style.boxShadow = '0 0 0 2px rgba(244,63,94,0.3)';
+        emailFeedback.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#f43f5e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            <span class="text-[#f43f5e]">Please enter a valid email address.</span>`;
+        emailFeedback.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+    }
+
+    // Format OK — check server for duplicates
+    emailDebounce = setTimeout(() => {
+        fetch(`/user/check-email/?email=${encodeURIComponent(value)}&user_id=${currentUserId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    emailInput.style.borderColor = '#22c55e';
+                    emailInput.style.boxShadow = '0 0 0 2px rgba(34,197,94,0.3)';
+                    emailFeedback.innerHTML = `<span class="text-green-400">✓ Email is available.</span>`;
+                    emailFeedback.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    emailInput.style.borderColor = '#f43f5e';
+                    emailInput.style.boxShadow = '0 0 0 2px rgba(244,63,94,0.3)';
+                    emailFeedback.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#f43f5e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                        <span class="text-[#f43f5e]">✕ Email already exists, please use another.</span>`;
+                    emailFeedback.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            })
+            .catch(() => resetEmailField());
+    }, 500);
+});
+
+function resetEmailField() {
+    emailInput.style.borderColor = '';
+    emailInput.style.boxShadow = '';
+    emailFeedback.innerHTML = '';
+    emailFeedback.classList.add('hidden');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+}
+</script>
+
+{% endblock 'content' %}

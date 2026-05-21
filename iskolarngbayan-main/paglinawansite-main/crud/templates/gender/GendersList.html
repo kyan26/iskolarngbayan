@@ -1,0 +1,52 @@
+{% extends "layout/base.html" %}
+{% block 'title' %}Gender List{% endblock 'title' %}
+{% block 'content' %}
+{% include "include/Sidebar.html" %}
+{% include "include/ToastMessage.html" %}
+
+<div class="p-4 sm:ml-64 mt-14">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">Gender List</h1>
+        <p class="text-sm text-slate-400">Manage gender options</p>
+    </div>
+
+    <div class="rounded-xl border border-[#334155] overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-[#6366f1] text-white text-xs uppercase tracking-wider">
+                <tr>
+                    <th class="px-6 py-4 text-left">ID</th>
+                    <th class="px-6 py-4 text-left">Gender</th>
+                    <th class="px-6 py-4 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gender in genders %}
+                <tr class="bg-[#1e293b] border-b border-[#334155] hover:bg-[#334155] transition-colors">
+                    <td class="px-6 py-4 text-slate-300">{{ gender.gender_id }}</td>
+                    <td class="px-6 py-4 text-white font-medium">{{ gender.gender }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <a href="/gender/edit/{{ gender.gender_id }}"
+                                class="bg-[#6366f1] hover:bg-[#818cf8] text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+                                Edit
+                            </a>
+                            <a href="/gender/delete/{{ gender.gender_id }}"
+                                class="bg-[#f43f5e] hover:bg-rose-400 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+                                Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="bg-[#1e293b]">
+                    <td colspan="3" class="px-6 py-8 text-center text-slate-500">
+                        No genders found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock 'content' %}

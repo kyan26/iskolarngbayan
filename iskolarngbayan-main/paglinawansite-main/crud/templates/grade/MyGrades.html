@@ -1,0 +1,149 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}My Grades{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">My Grades</h1>
+        <p class="text-slate-400 text-sm mt-1">View your academic records</p>
+    </div>
+
+    {% if scholar and grades %}
+
+    <!-- GPA Summary Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Overall GPA</p>
+            <p class="text-3xl font-bold text-emerald-400">{{ scholar.gpa }}</p>
+            <p class="text-xs text-slate-500 mt-1">
+                {% if scholar.gpa <= 1.5 %}Excellent
+                {% elif scholar.gpa <= 2.5 %}Very Good
+                {% elif scholar.gpa <= 3.0 %}Good
+                {% elif scholar.gpa <= 4.0 %}Passing
+                {% else %}Failed{% endif %}
+            </p>
+        </div>
+
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Total Subjects</p>
+            <p class="text-3xl font-bold text-white">{{ total_subjects }}</p>
+            <p class="text-xs text-slate-500 mt-1">Recorded</p>
+        </div>
+
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Passed</p>
+            <p class="text-3xl font-bold text-green-400">{{ passed_subjects }}</p>
+            <p class="text-xs text-slate-500 mt-1">Grade below 3.0</p>
+        </div>
+
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-4">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-2">Failed</p>
+            <p class="text-3xl font-bold text-red-400">{{ failed_subjects }}</p>
+            <p class="text-xs text-slate-500 mt-1">Grade 5.0</p>
+        </div>
+
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" class="flex flex-wrap gap-3 mb-5">
+        <select name="semester"
+            class="bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+            <option value="">All Semesters</option>
+            <option value="1st Semester" {% if selected_semester == '1st Semester' %}selected{% endif %}>1st Semester</option>
+            <option value="2nd Semester" {% if selected_semester == '2nd Semester' %}selected{% endif %}>2nd Semester</option>
+            <option value="Summer" {% if selected_semester == 'Summer' %}selected{% endif %}>Summer</option>
+        </select>
+        <select name="school_year"
+            class="bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+            <option value="">All School Years</option>
+            {% for sy in school_years %}
+            <option value="{{ sy }}" {% if selected_year == sy %}selected{% endif %}>{{ sy }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit"
+            class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+            Filter
+        </button>
+        {% if selected_semester or selected_year %}
+        <a href="/my-grades"
+            class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Grades Table -->
+    <div class="rounded-xl overflow-hidden border border-[#334155]">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-[#6366f1] text-white">
+                <tr>
+                    <th class="px-6 py-3">#</th>
+                    <th class="px-6 py-3">Subject</th>
+                    <th class="px-6 py-3 text-center">Grade</th>
+                    <th class="px-6 py-3 text-center">Remarks</th>
+                    <th class="px-6 py-3">Semester</th>
+                    <th class="px-6 py-3">School Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in grades %}
+                <tr class="bg-[#1e293b] border-b border-[#334155] hover:bg-[#253047] transition">
+                    <td class="px-6 py-4 text-slate-400">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 text-white font-medium">{{ grade.subject }}</td>
+                    <td class="px-6 py-4 text-center font-bold
+                        {% if grade.grade <= 1.5 %}text-green-400
+                        {% elif grade.grade <= 2.5 %}text-blue-400
+                        {% elif grade.grade <= 3.0 %}text-yellow-400
+                        {% elif grade.grade <= 4.0 %}text-orange-400
+                        {% else %}text-red-400{% endif %}">
+                        {{ grade.grade }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        {% if grade.grade <= 1.5 %}
+                            <span class="bg-green-900 text-green-300 text-xs px-2 py-0.5 rounded-full">Excellent</span>
+                        {% elif grade.grade <= 2.5 %}
+                            <span class="bg-blue-900 text-blue-300 text-xs px-2 py-0.5 rounded-full">Very Good</span>
+                        {% elif grade.grade <= 3.0 %}
+                            <span class="bg-yellow-900 text-yellow-300 text-xs px-2 py-0.5 rounded-full">Good</span>
+                        {% elif grade.grade <= 4.0 %}
+                            <span class="bg-orange-900 text-orange-300 text-xs px-2 py-0.5 rounded-full">Passing</span>
+                        {% else %}
+                            <span class="bg-red-900 text-red-300 text-xs px-2 py-0.5 rounded-full">Failed</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-slate-300">{{ grade.semester }}</td>
+                    <td class="px-6 py-4 text-slate-400">{{ grade.school_year }}</td>
+                </tr>
+                {% empty %}
+                <tr class="bg-[#1e293b]">
+                    <td colspan="6" class="px-6 py-12 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-slate-400 text-sm">No grades found for the selected filters.</p>
+                        <p class="text-slate-600 text-xs mt-1">Try clearing the filters or check back later.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl flex flex-col items-center justify-center py-16 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="text-white font-semibold text-lg">No Grades Yet</p>
+        <p class="text-slate-500 text-sm mt-1 max-w-xs">Your grades will appear here once uploaded by the admin.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}Delete Announcement{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<style>
+    .page-wrap { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+
+    .confirm-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px;
+        max-width: 460px;
+    }
+
+    .confirm-icon {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: rgba(220,38,38,0.12);
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 18px;
+    }
+    .confirm-icon svg { width: 24px; height: 24px; color: #F87171; }
+
+    .confirm-question {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+    .confirm-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 24px;
+        line-height: 1.4;
+    }
+
+    .btn-row { display: flex; gap: 10px; }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #F87171, #DC2626);
+        color: #fff;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 22px;
+        cursor: pointer;
+        transition: opacity 0.18s, transform 0.18s;
+        box-shadow: 0 4px 14px rgba(220,38,38,0.2);
+    }
+    .btn-danger:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-secondary {
+        background: var(--surface-2);
+        color: var(--text-muted);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 22px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: background 0.18s, color 0.18s;
+    }
+    .btn-secondary:hover { color: var(--text-primary); }
+</style>
+
+<div class="sm:ml-64 mt-14">
+    <div class="page-wrap p-6">
+
+        <div class="page-header">
+            <h1>Delete Announcement</h1>
+        </div>
+
+        <div class="confirm-card">
+            <div class="confirm-icon">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+
+            <p class="confirm-question">Are you sure you want to delete this announcement?</p>
+            <p class="confirm-title">{{ announcement.title }}</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="btn-row">
+                    <button type="submit" class="btn-danger">Yes, Delete</button>
+                    <a href="/announcement/list" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}Edit Scholar{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-white">Edit Scholar</h1>
+        <p class="text-slate-400 text-sm mt-1">Update scholar profile</p>
+    </div>
+
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                    <input type="text" name="full_name" value="{{ scholar.full_name }}"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Phone Number</label>
+                    <input type="text" name="phone" value="{{ scholar.phone }}"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Address</label>
+                    <input type="text" name="address" value="{{ scholar.address }}"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">School</label>
+                    <input type="text" name="school" value="{{ scholar.school }}"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Course</label>
+                    <input type="text" name="course" value="{{ scholar.course }}"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Year Level</label>
+                    <select name="year_level" class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                        <option value="">-- Select Year --</option>
+                        {% for year in "12345" %}
+                        <option value="{{ year }}{% if forloop.first %}st{% elif forloop.counter == 2 %}nd{% elif forloop.counter == 3 %}rd{% else %}th{% endif %} Year"
+                            {% if scholar.year_level == year|add:"st Year" or scholar.year_level == year|add:"nd Year" or scholar.year_level == year|add:"rd Year" or scholar.year_level == year|add:"th Year" %}selected{% endif %}>
+                            {{ year }}{% if forloop.first %}st{% elif forloop.counter == 2 %}nd{% elif forloop.counter == 3 %}rd{% else %}th{% endif %} Year
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">GPA</label>
+                    <input type="number" name="gpa" step="0.01" value="{{ scholar.gpa }}"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Photo</label>
+                    {% if scholar.photo %}
+                    <img src="{{ scholar.photo.url }}" class="w-16 h-16 rounded-full object-cover mb-3">
+                    {% endif %}
+                    <input type="file" name="photo" accept="image/*"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-slate-400 text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button type="submit" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Update Scholar</button>
+                <a href="/scholar/list" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

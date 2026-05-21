@@ -1,0 +1,55 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}Apply for Scholarship{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6">
+
+    <div class="isk-page-header">
+        <div>
+            <h1 class="isk-page-title">Apply for Scholarship</h1>
+            <p class="isk-page-sub">Submit your scholarship application</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="isk-error-box" style="max-width:680px">
+        <p class="isk-error-title">Please fix the following errors:</p>
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="isk-card isk-form-wrap">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="isk-form-group">
+                <label class="isk-label">Select Scholarship</label>
+                <select name="scholarship" class="isk-input">
+                    <option value="">-- Select Scholarship --</option>
+                    {% for scholarship in scholarships %}
+                    <option value="{{ scholarship.scholarship_id }}">
+                        {{ scholarship.name }} — ₱{{ scholarship.amount }} ({{ scholarship.slots }} slots)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="isk-form-group">
+                <label class="isk-label">Remarks <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                <textarea name="remarks" rows="3" placeholder="Any additional notes..." class="isk-input"></textarea>
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button type="submit" class="isk-btn isk-btn-primary">Submit Application</button>
+                <a href="/profile" class="isk-btn isk-btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

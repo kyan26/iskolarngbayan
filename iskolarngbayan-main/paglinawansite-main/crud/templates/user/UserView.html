@@ -1,0 +1,100 @@
+{% extends 'layout/base.html' %}
+{% block 'title' %}View User{% endblock %}
+
+{% block 'content' %}
+{% include 'include/Sidebar.html' %}
+{% include 'include/ToastMessage.html' %}
+
+<div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
+
+    <div class="w-full max-w-2xl mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">User Profile</h1>
+            <p class="text-sm text-slate-400 mt-1">Full details for this user account</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="/user/edit/{{ user.user_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Edit</a>
+            <a href="/user/list" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Back</a>
+        </div>
+    </div>
+
+    <div class="w-full max-w-2xl space-y-4">
+
+        <!-- Profile header card -->
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 flex items-center gap-5">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile"
+                    class="h-20 w-20 rounded-full object-cover ring-2 ring-[#6366f1] flex-shrink-0">
+            {% else %}
+                <div class="h-20 w-20 rounded-full bg-[#334155] flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+            {% endif %}
+            <div>
+                <h2 class="text-xl font-bold text-white">{{ user.full_name }}</h2>
+                <span class="inline-block mt-1 bg-indigo-900 text-indigo-300 text-xs font-medium px-2.5 py-1 rounded-full">{{ user.role.role }}</span>
+            </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Personal Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Full Name</p>
+                    <p class="text-sm text-white">{{ user.full_name }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Gender</p>
+                    <p class="text-sm text-white">{{ user.gender|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Birth Date</p>
+                    <p class="text-sm text-white">{{ user.birth_date|date:"F d, Y"|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Contact Number</p>
+                    <p class="text-sm text-white">{{ user.contact_number|default:"—" }}</p>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <p class="text-xs text-slate-500 mb-1">Home Address</p>
+                    <p class="text-sm text-white">{{ user.address|default:"—" }}</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6">
+            <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Account Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Username</p>
+                    <p class="text-sm text-white">{{ user.username }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Email</p>
+                    <p class="text-sm text-white">{{ user.email|default:"—" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-xs text-slate-500 mb-1">Role</p>
+                    <p class="text-sm text-white">{{ user.role.role }}</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
