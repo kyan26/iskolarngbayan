@@ -21,56 +21,77 @@
     <div id="skeletonScreen">
 
         <!-- Skeleton Navbar -->
-        <div class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-6 gap-4"
+        <div class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-4 gap-3"
             style="background:var(--navbar-bg);border-bottom:1px solid var(--border)">
-            <div class="skeleton h-8 w-8 rounded-xl flex-shrink-0"></div>
-            <div class="skeleton h-5 w-36 rounded"></div>
+            <div class="skeleton h-7 w-7 rounded-lg flex-shrink-0"></div>
+            <div class="skeleton h-5 w-32 rounded"></div>
             <div class="ml-auto flex items-center gap-3">
                 <div class="skeleton h-8 w-8 rounded-full"></div>
-                <div class="skeleton h-8 w-8 rounded-full"></div>
+                <div class="skeleton h-4 w-20 rounded hidden md:block"></div>
+                <div class="skeleton h-9 w-9 rounded-full"></div>
             </div>
         </div>
 
-        <!-- Skeleton Sidebar -->
-        <div class="fixed top-14 left-0 h-full w-64 p-4 flex flex-col gap-3 pt-6"
+        <!-- Skeleton Sidebar — hidden on mobile -->
+        <div class="hidden sm:flex fixed top-14 left-0 h-full w-64 p-4 flex-col gap-2 pt-6"
             style="background:var(--sidebar-bg);border-right:1px solid var(--border)">
-            <div class="skeleton h-4 w-1/2 rounded mb-2"></div>
-            {% for i in "12345678" %}
-            <div class="skeleton h-8 w-full rounded-lg"></div>
+            <div class="skeleton h-3 w-20 rounded mb-3 opacity-40"></div>
+            {% for i in "12345" %}
+            <div class="flex items-center gap-3 px-2 py-2">
+                <div class="skeleton h-4 w-4 rounded flex-shrink-0"></div>
+                <div class="skeleton h-4 rounded" style="width:{% cycle '90px' '70px' '100px' '80px' '75px' %}"></div>
+            </div>
+            {% endfor %}
+            <div class="skeleton h-px w-full my-2 opacity-20"></div>
+            {% for i in "123" %}
+            <div class="flex items-center gap-3 px-2 py-2">
+                <div class="skeleton h-4 w-4 rounded flex-shrink-0 opacity-50"></div>
+                <div class="skeleton h-4 rounded opacity-50" style="width:{% cycle '85px' '95px' '65px' %}"></div>
+            </div>
             {% endfor %}
         </div>
 
         <!-- Skeleton Content -->
-        <div class="sm:ml-64 mt-14 p-6 flex flex-col gap-4">
-            <div class="skeleton h-8 w-1/4 rounded-lg"></div>
-            <div class="skeleton h-4 w-1/3 rounded mb-2"></div>
-            <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="sm:ml-64 mt-14 p-4 sm:p-6 flex flex-col gap-4">
+            <!-- Page title -->
+            <div class="skeleton h-7 w-40 rounded-lg"></div>
+            <div class="skeleton h-4 w-56 rounded"></div>
+
+            <!-- Stat cards — 1 col mobile, 2 tablet, 3 desktop -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                 {% for i in "123456" %}
                 <div class="skeleton h-24 rounded-xl"></div>
                 {% endfor %}
             </div>
-            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
-                <div class="px-6 py-3 flex gap-6" style="background:#4F46E5">
+
+            <!-- Table -->
+            <div class="rounded-xl overflow-hidden mt-2" style="border:1px solid var(--border)">
+                <div class="px-4 sm:px-6 py-3 flex gap-4"
+                    style="background:#4F46E5">
                     {% for i in "1234" %}
                     <div class="skeleton h-4 w-1/6 opacity-30"></div>
                     {% endfor %}
                 </div>
                 {% for i in "12345" %}
-                <div class="flex gap-6 px-6 py-4 items-center"
+                <div class="flex gap-4 px-4 sm:px-6 py-4 items-center"
                     style="border-bottom:1px solid var(--border);background:var(--table-row)">
-                    <div class="skeleton h-4 w-1/5 rounded"></div>
-                    <div class="skeleton h-4 w-1/5 rounded"></div>
-                    <div class="skeleton h-4 w-1/5 rounded"></div>
+                    <div class="skeleton h-4 w-1/4 rounded"></div>
+                    <div class="skeleton h-4 w-1/4 rounded hidden sm:block"></div>
+                    <div class="skeleton h-4 w-1/4 rounded hidden md:block"></div>
                     <div class="flex gap-2 ml-auto">
                         <div class="skeleton h-8 w-14 rounded-lg"></div>
-                        <div class="skeleton h-8 w-14 rounded-lg"></div>
+                        <div class="skeleton h-8 w-14 rounded-lg hidden sm:block"></div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
-
     </div>
+
+    <!-- OVERLAY — closes sidebar on mobile when tapping outside -->
+    <div id="sidebarOverlay"
+        class="fixed inset-0 z-30 bg-black/50 hidden sm:hidden"
+        onclick="closeSidebar()"></div>
 
     <!-- REAL CONTENT -->
     <div id="pageContent" style="display:none;">

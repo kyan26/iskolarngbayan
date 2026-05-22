@@ -96,3 +96,35 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
+// ── Mobile sidebar toggle ──
+function toggleSidebar() {
+    const sidebar = document.getElementById('top-bar-sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const isOpen  = !sidebar.classList.contains('-translate-x-full');
+
+    if (isOpen) {
+        closeSidebar();
+    } else {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('top-bar-sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Close sidebar when a nav link is clicked on mobile
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('#top-bar-sidebar .snb-item').forEach(function (link) {
+        link.addEventListener('click', function () {
+            if (window.innerWidth < 640) closeSidebar();
+        });
+    });
+});
