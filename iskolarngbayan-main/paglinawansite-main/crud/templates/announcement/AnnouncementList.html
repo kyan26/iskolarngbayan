@@ -9,29 +9,74 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-white">Announcements</h1>
         {% if request.session.user_role == 'Admin' or request.session.user_role == 'Staff' %}
-        <a href="/announcement/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Post Announcement</a>
+        <a href="/announcement/add"
+            class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+            + Post Announcement
+        </a>
         {% endif %}
     </div>
 
     <div class="space-y-4">
         {% for announcement in announcements %}
         <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 hover:bg-[#253047] transition">
-            <div class="flex justify-between gap-4 items-center">
+            <div class="flex justify-between gap-4 items-start">
                 <div class="flex-1">
-                    <h2 class="text-white font-bold text-lg mb-2">{{ announcement.title }}</h2>
+
+                    <!-- Title + badges -->
+                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                        <h2 class="text-white font-bold text-lg">{{ announcement.title }}</h2>
+
+                        {% if announcement.target_user %}
+                            <!-- Private badge -->
+                            <span class="inline-flex items-center gap-1 bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                🔒 Private
+                            </span>
+                        {% else %}
+                            <!-- Public badge -->
+                            <span class="inline-flex items-center gap-1 bg-slate-700/50 border border-slate-600/40 text-slate-400 text-xs font-medium px-2 py-0.5 rounded-full">
+                                🌐 Public
+                            </span>
+                        {% endif %}
+                    </div>
+
                     <p class="text-slate-300 text-sm leading-relaxed">{{ announcement.content }}</p>
-                    <div class="flex items-center gap-3 mt-4">
-                        <span class="text-slate-500 text-xs">Posted by {{ announcement.posted_by.full_name }}</span>
+
+                    <!-- Meta row -->
+                    <div class="flex items-center gap-3 mt-4 flex-wrap">
+                        <span class="text-slate-500 text-xs">
+                            Posted by <span class="text-slate-400">{{ announcement.posted_by.full_name }}</span>
+                        </span>
                         <span class="text-slate-600 text-xs">•</span>
                         <span class="text-slate-500 text-xs">{{ announcement.created_at|date:"M d, Y" }}</span>
+
+                        {% if announcement.target_user %}
+                        <span class="text-slate-600 text-xs">•</span>
+                        {% if request.session.user_role == 'Admin' %}
+                            <!-- Admin sees the recipient's name -->
+                            <span class="inline-flex items-center gap-1 text-indigo-400 text-xs">
+                                → For: <span class="font-medium text-indigo-300">{{ announcement.target_user.full_name }}</span>
+                            </span>
+                        {% else %}
+                            <!-- Scholar just sees it's for them -->
+                            <span class="inline-flex items-center gap-1 text-indigo-400 text-xs">
+                                → Sent to you
+                            </span>
+                        {% endif %}
+                        {% endif %}
                     </div>
+
                 </div>
+
+                <!-- Delete button (admin only) -->
                 {% if request.session.user_role == 'Admin' or request.session.user_role == 'Staff' %}
                 <div class="flex-shrink-0">
                     <a href="/announcement/delete/{{ announcement.announcement_id }}"
-                        class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition inline-block">Delete</a>
+                        class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition inline-block">
+                        Delete
+                    </a>
                 </div>
                 {% endif %}
+
             </div>
         </div>
         {% empty %}
@@ -41,4 +86,5 @@
         {% endfor %}
     </div>
 </div>
+
 {% endblock %}

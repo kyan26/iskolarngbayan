@@ -53,6 +53,7 @@ urlpatterns = [
     path('scholar/<int:scholar_id>/grades', views.grade_list),
     path('scholar/<int:scholar_id>/grades/add', views.grade_add),
     path('grade/delete/<int:grade_id>', views.grade_delete),
+    path('grade/edit/<int:grade_id>', views.grade_edit),
 
     # ─── ANNOUNCEMENTS ──────────────────────────
     path('announcement/list', views.announcement_list),

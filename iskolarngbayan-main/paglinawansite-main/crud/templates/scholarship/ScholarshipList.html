@@ -24,6 +24,7 @@
                     <th class="px-6 py-3">Name</th>
                     <th class="px-6 py-3">Amount</th>
                     <th class="px-6 py-3">Slots</th>
+                    <th class="px-6 py-3">Required GPA</th>
                     <th class="px-6 py-3">Start Date</th>
                     <th class="px-6 py-3">End Date</th>
                     <th class="px-6 py-3">Actions</th>
@@ -36,6 +37,9 @@
                     <td class="px-6 py-4 text-white font-medium">{{ scholarship.name }}</td>
                     <td class="px-6 py-4 text-emerald-400 font-medium">₱{{ scholarship.amount }}</td>
                     <td class="px-6 py-4 text-slate-300">{{ scholarship.slots }}</td>
+                    <td class="px-6 py-4">
+                        <span class="bg-indigo-500/15 text-indigo-300 text-xs font-semibold px-2.5 py-1 rounded-full">{{ scholarship.gpa_requirement }}</span>
+                    </td>
                     <td class="px-6 py-4 text-slate-400">{{ scholarship.start_date|date:"M d, Y" }}</td>
                     <td class="px-6 py-4 text-slate-400">{{ scholarship.end_date|date:"M d, Y" }}</td>
                     <td class="px-6 py-4">
@@ -47,7 +51,7 @@
                 </tr>
                 {% empty %}
                 <tr class="bg-[#1e293b]">
-                    <td colspan="7" class="px-6 py-8 text-center text-slate-400">No scholarships found.</td>
+                    <td colspan="8" class="px-6 py-8 text-center text-slate-400">No scholarships found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

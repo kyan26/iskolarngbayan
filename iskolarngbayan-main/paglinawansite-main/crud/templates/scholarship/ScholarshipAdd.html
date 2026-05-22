@@ -6,7 +6,7 @@
 {% include 'include/ToastMessage.html' %}
 
 <div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
-    <div class="mb-6">
+    <div class="mb-6 text-center">
         <h1 class="text-2xl font-bold text-white">Add Scholarship</h1>
         <p class="text-slate-400 text-sm mt-1">Create a new scholarship program</p>
     </div>
@@ -37,6 +37,14 @@
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Slots Available</label>
                     <input type="number" name="slots" placeholder="50"
+                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Required GPA
+                        <span class="text-slate-500 text-xs">(scholars above this are auto-rejected)</span>
+                    </label>
+                    <input type="number" name="gpa_requirement" step="0.01" min="1.00" max="5.00" placeholder="e.g. 2.50" required
                         class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
                 </div>
 

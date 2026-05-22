@@ -13,33 +13,33 @@
             <p class="text-sm text-slate-400 mt-1">Full details for this scholar</p>
         </div>
         <div class="flex gap-2">
-            <a href="/scholar/edit/{{ scholar.scholar_id }}" class="bg-yellow-500 hover:bg-yellow-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Edit</a>
-            <a href="/scholar/list" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Back</a>
+            <a href="/scholar/edit/{{ scholar.scholar_id }}"
+                class="bg-yellow-500 hover:bg-yellow-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Edit</a>
+            <a href="/scholar/list"
+                class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Back</a>
         </div>
     </div>
 
     <div class="w-full max-w-2xl space-y-4">
 
         <!-- Profile header card -->
-        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 flex items-center gap-5">
-            {% if scholar.photo %}
-                <img src="{{ scholar.photo.url }}" alt="Scholar Photo"
-                    class="h-20 w-20 rounded-full object-cover ring-2 ring-[#6366f1] flex-shrink-0">
-            {% elif scholar.user.profile_picture %}
-                <img src="{{ scholar.user.profile_picture.url }}" alt="Profile"
-                    class="h-20 w-20 rounded-full object-cover ring-2 ring-[#6366f1] flex-shrink-0">
-            {% else %}
-                <div class="h-20 w-20 rounded-full bg-[#334155] flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </div>
-            {% endif %}
-            <div>
-                <h2 class="text-xl font-bold text-white">{{ scholar.full_name }}</h2>
-                <p class="text-sm text-slate-400 mt-0.5">{{ scholar.course }} &mdash; {{ scholar.year_level }}</p>
-                <div class="mt-2">
+        <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 flex items-center gap-6">
+            {% if scholar.user.profile_picture %}
+    <img src="{{ scholar.user.profile_picture.url }}" alt="Scholar Photo"
+        class="h-24 w-24 rounded-full object-cover ring-2 ring-[#6366f1] flex-shrink-0">
+{% else %}
+    <div class="h-24 w-24 rounded-full bg-[#334155] flex items-center justify-center flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+    </div>
+{% endif %}
+            <div class="flex flex-col gap-1.5">
+                <h2 class="text-2xl font-bold text-white leading-tight">{{ scholar.full_name }}</h2>
+                <p class="text-sm text-slate-400">{{ scholar.school|default:"—" }}</p>
+                <p class="text-sm text-slate-500">{{ scholar.course }} &mdash; {{ scholar.year_level }}</p>
+                <div class="mt-1">
                     <span class="bg-emerald-900 text-emerald-300 text-xs font-medium px-2.5 py-1 rounded-full">GPA {{ scholar.gpa }}</span>
                 </div>
             </div>
@@ -126,6 +126,7 @@
                                             <th class="px-4 py-2">Subject</th>
                                             <th class="px-4 py-2 text-center">Grade</th>
                                             <th class="px-4 py-2 text-center">Remarks</th>
+                                            <th class="px-4 py-2 text-center w-28">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-[#334155]">
@@ -152,6 +153,18 @@
                                                 {% else %}
                                                     <span class="bg-red-900 text-red-300 text-xs px-2 py-0.5 rounded-full">Failed</span>
                                                 {% endif %}
+                                            </td>
+                                            <td class="px-4 py-2 whitespace-nowrap">
+                                                <div class="flex items-center justify-center gap-2">
+                                                   <a href="/grade/edit/{{ g.grade_id }}"
+                                                        class="bg-yellow-500 hover:bg-yellow-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                                                        Edit
+                                                    </a>
+                                                    <a href="/grade/delete/{{ g.grade_id }}"
+                                                    class="bg-red-500 hover:bg-red-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                                                    Delete
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                         {% endfor %}

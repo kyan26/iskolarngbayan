@@ -6,25 +6,26 @@
 {% include 'include/ToastMessage.html' %}
 
 <div class="sm:ml-64 mt-14 p-6 flex flex-col items-center">
-    <div class="mb-6">
+    <div class="mb-6 text-center">
         <h1 class="text-2xl font-bold text-white">Add Grade</h1>
         <p class="text-slate-400 text-sm mt-1">{{ scholar.full_name }}</p>
     </div>
 
-    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 max-w-2xl">
+    {% if messages %}
+    <div class="w-full max-w-2xl mb-4">
+        <div class="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+            {% for message in messages %}
+            <p class="text-red-400 text-sm">{{ message }}</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="bg-[#1e293b] border border-[#334155] rounded-xl p-6 w-full max-w-2xl">
         <form method="POST">
             {% csrf_token %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Subject</label>
-                    <input type="text" name="subject" placeholder="e.g. Mathematics"
-                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Grade</label>
-                    <input type="number" name="grade" step="0.01" min="1.00" max="5.00" placeholder="1.50"
-                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Semester</label>
                     <select name="semester" class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
@@ -34,17 +35,185 @@
                         <option value="Summer">Summer</option>
                     </select>
                 </div>
-                <div class="sm:col-span-2">
+
+                <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">School Year</label>
-                    <input type="text" name="school_year" placeholder="e.g. 2024-2025"
-                        class="w-full bg-[#0f172a] border border-[#334155] text-white text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-[#6366f1]">
+                    <div class="w-full px-4 py-2.5 rounded-lg bg-[#0f172a] border border-[#334155] text-slate-400 text-sm cursor-not-allowed">
+                        {{ school_year }}
+                    </div>
+                </div>
+
+                <!-- GPA result display -->
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">GPA
+                        <span class="text-xs text-slate-500 ml-1">(calculated below)</span>
+                    </label>
+                    <input type="number" name="gpa_preview" id="gpaResult" step="0.01" min="1.00" max="5.00"
+                        placeholder="Auto-calculated" readonly
+                        class="w-full bg-[#0f172a] border border-[#334155] text-[#6366f1] font-semibold text-sm rounded-lg px-4 py-2.5 focus:outline-none cursor-not-allowed">
+                </div>
+
+            </div>
+
+            <!-- GPA Calculator -->
+            <div class="bg-[#0f172a] border border-[#334155] rounded-xl p-4 mb-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm font-medium text-slate-300">Subject & Grade Entry</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Philippine 5-point scale — enter each subject's grade and units</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-500">Computed GPA</p>
+                        <p class="text-2xl font-bold text-[#6366f1]" id="gpaDisplay">&mdash;</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 mb-4">
+                    <div class="flex-1 bg-[#1e293b] rounded-lg px-3 py-2 text-center">
+                        <p class="text-xs text-slate-500">Total Units</p>
+                        <p class="text-base font-semibold text-white" id="totalUnits">0</p>
+                    </div>
+                    <div class="flex-1 bg-[#1e293b] rounded-lg px-3 py-2 text-center">
+                        <p class="text-xs text-slate-500">Subjects</p>
+                        <p class="text-base font-semibold text-white" id="subjectCount">0</p>
+                    </div>
+                    <div class="flex-1 bg-[#1e293b] rounded-lg px-3 py-2 text-center">
+                        <p class="text-xs text-slate-500">Status</p>
+                        <p class="text-base font-semibold" id="gpaStatus">&mdash;</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-2 mb-2 px-1">
+                    <div class="col-span-5 text-xs text-slate-500 font-medium">Subject</div>
+                    <div class="col-span-3 text-xs text-slate-500 font-medium">Units</div>
+                    <div class="col-span-3 text-xs text-slate-500 font-medium">Grade (1.0–5.0)</div>
+                    <div class="col-span-1"></div>
+                </div>
+
+                <div id="subjectRows" class="space-y-2"></div>
+
+                <button type="button" onclick="addSubjectRow()"
+                    class="mt-3 w-full flex items-center justify-center gap-2 text-xs text-slate-400 hover:text-white border border-dashed border-[#334155] hover:border-[#6366f1] rounded-lg py-2 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add Subject
+                </button>
+
+                <div class="mt-4 pt-3 border-t border-[#334155]">
+                    <p class="text-xs text-slate-500 mb-2">Grade Reference</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-[#1e293b] text-green-400 px-2 py-1 rounded">1.0–1.5 Excellent</span>
+                        <span class="text-xs bg-[#1e293b] text-blue-400 px-2 py-1 rounded">1.75–2.5 Very Good</span>
+                        <span class="text-xs bg-[#1e293b] text-yellow-400 px-2 py-1 rounded">2.75–3.0 Good</span>
+                        <span class="text-xs bg-[#1e293b] text-orange-400 px-2 py-1 rounded">3.5–4.0 Passing</span>
+                        <span class="text-xs bg-[#1e293b] text-red-400 px-2 py-1 rounded">5.0 Failed</span>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-2 mt-6">
-                <button type="submit" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Save Grade</button>
+
+            <div class="flex gap-2">
+                <button type="submit" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Save Grades</button>
                 <a href="/scholar/{{ scholar.scholar_id }}/grades" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Cancel</a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+    let rowCount = 0;
+
+    function addSubjectRow(subjectVal = '', unitsVal = '', gradeVal = '') {
+        rowCount++;
+        const id = rowCount;
+        const container = document.getElementById('subjectRows');
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-12 gap-2 items-center';
+        row.id = `row-${id}`;
+        row.innerHTML = `
+            <div class="col-span-5">
+                <input type="text" name="subject[]" placeholder="e.g. Math 101"
+                    value="${subjectVal}"
+                    class="subject-name w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+            </div>
+            <div class="col-span-3">
+                <input type="number" name="units[]" placeholder="3" min="1" max="6" step="1"
+                    value="${unitsVal}"
+                    oninput="recalcGPA()"
+                    class="subject-units w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+            </div>
+            <div class="col-span-3">
+                <input type="number" name="grade[]" placeholder="1.50" min="1.00" max="5.00" step="0.25"
+                    value="${gradeVal}"
+                    oninput="recalcGPA()"
+                    class="subject-grade w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+            </div>
+            <div class="col-span-1 flex justify-center">
+                <button type="button" onclick="removeRow(${id})"
+                    class="text-slate-600 hover:text-red-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
+        recalcGPA();
+    }
+
+    function removeRow(id) {
+        const row = document.getElementById(`row-${id}`);
+        if (row) row.remove();
+        recalcGPA();
+    }
+
+    function recalcGPA() {
+        const unitInputs  = document.querySelectorAll('.subject-units');
+        const gradeInputs = document.querySelectorAll('.subject-grade');
+
+        let totalWeighted = 0;
+        let totalUnits    = 0;
+        let validRows     = 0;
+
+        unitInputs.forEach((unitEl, i) => {
+            const units = parseFloat(unitEl.value);
+            const grade = parseFloat(gradeInputs[i].value);
+            if (!isNaN(units) && !isNaN(grade) && units > 0 && grade >= 1.0 && grade <= 5.0) {
+                totalWeighted += units * grade;
+                totalUnits    += units;
+                validRows++;
+            }
+        });
+
+        document.getElementById('totalUnits').textContent  = totalUnits;
+        document.getElementById('subjectCount').textContent = unitInputs.length;
+
+        const displayEl = document.getElementById('gpaDisplay');
+        const resultEl  = document.getElementById('gpaResult');
+        const statusEl  = document.getElementById('gpaStatus');
+
+        if (totalUnits > 0 && validRows > 0) {
+            const gpa     = totalWeighted / totalUnits;
+            const rounded = Math.round(gpa * 100) / 100;
+            displayEl.textContent = rounded.toFixed(2);
+            resultEl.value        = rounded.toFixed(2);
+
+            if (rounded <= 1.5)      { statusEl.textContent = 'Excellent'; statusEl.className = 'text-base font-semibold text-green-400'; }
+            else if (rounded <= 2.5) { statusEl.textContent = 'Very Good'; statusEl.className = 'text-base font-semibold text-blue-400'; }
+            else if (rounded <= 3.0) { statusEl.textContent = 'Good';      statusEl.className = 'text-base font-semibold text-yellow-400'; }
+            else if (rounded <= 4.0) { statusEl.textContent = 'Passing';   statusEl.className = 'text-base font-semibold text-orange-400'; }
+            else                     { statusEl.textContent = 'Failed';    statusEl.className = 'text-base font-semibold text-red-400'; }
+        } else {
+            displayEl.textContent = '—';
+            resultEl.value        = '';
+            statusEl.textContent  = '—';
+            statusEl.className    = 'text-base font-semibold text-slate-400';
+        }
+    }
+
+    addSubjectRow();
+    addSubjectRow();
+    addSubjectRow();
+</script>
+
 {% endblock %}

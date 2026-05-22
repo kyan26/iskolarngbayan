@@ -484,7 +484,11 @@ body.light-mode .isk-error-box .isk-error-title { color: #B91C1C; }
     animation: shimmer 1.5s infinite;
     border-radius: 6px;
 }
-#pageContent { display: none; }
+#pageContent{ 
+    display: none;
+    opacity: 0;
+
+}
 
 /* ══════════════════════════════════════════
    PROFILE CARD

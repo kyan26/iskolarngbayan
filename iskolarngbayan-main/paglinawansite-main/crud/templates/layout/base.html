@@ -19,44 +19,61 @@
 
     <!-- SKELETON -->
     <div id="skeletonScreen">
+
+        <!-- Skeleton Navbar -->
         <div class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center px-6 gap-4"
             style="background:var(--navbar-bg);border-bottom:1px solid var(--border)">
-            <div class="skeleton h-5 w-8 rounded"></div>
-            <div class="skeleton h-6 w-48"></div>
-            <div class="ml-auto skeleton h-9 w-9 rounded-full"></div>
+            <div class="skeleton h-8 w-8 rounded-xl flex-shrink-0"></div>
+            <div class="skeleton h-5 w-36 rounded"></div>
+            <div class="ml-auto flex items-center gap-3">
+                <div class="skeleton h-8 w-8 rounded-full"></div>
+                <div class="skeleton h-8 w-8 rounded-full"></div>
+            </div>
         </div>
-        <div class="fixed top-14 left-0 h-full w-64 p-4 flex flex-col gap-5 pt-8"
+
+        <!-- Skeleton Sidebar -->
+        <div class="fixed top-14 left-0 h-full w-64 p-4 flex flex-col gap-3 pt-6"
             style="background:var(--sidebar-bg);border-right:1px solid var(--border)">
-            {% for i in "123456789" %}
-            <div class="skeleton h-4 w-3/4"></div>
+            <div class="skeleton h-4 w-1/2 rounded mb-2"></div>
+            {% for i in "12345678" %}
+            <div class="skeleton h-8 w-full rounded-lg"></div>
             {% endfor %}
         </div>
+
+        <!-- Skeleton Content -->
         <div class="sm:ml-64 mt-14 p-6 flex flex-col gap-4">
-            <div class="skeleton h-9 w-1/3 rounded-lg"></div>
-            <div class="rounded-lg overflow-hidden" style="border:1px solid var(--border)">
+            <div class="skeleton h-8 w-1/4 rounded-lg"></div>
+            <div class="skeleton h-4 w-1/3 rounded mb-2"></div>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                {% for i in "123456" %}
+                <div class="skeleton h-24 rounded-xl"></div>
+                {% endfor %}
+            </div>
+            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
                 <div class="px-6 py-3 flex gap-6" style="background:#4F46E5">
-                    {% for i in "123456" %}
+                    {% for i in "1234" %}
                     <div class="skeleton h-4 w-1/6 opacity-30"></div>
                     {% endfor %}
                 </div>
-                {% for i in "12345678" %}
+                {% for i in "12345" %}
                 <div class="flex gap-6 px-6 py-4 items-center"
                     style="border-bottom:1px solid var(--border);background:var(--table-row)">
-                    <div class="skeleton h-9 w-9 rounded-full flex-shrink-0"></div>
-                    <div class="skeleton h-4 w-1/6"></div>
-                    <div class="skeleton h-4 w-1/6"></div>
+                    <div class="skeleton h-4 w-1/5 rounded"></div>
+                    <div class="skeleton h-4 w-1/5 rounded"></div>
+                    <div class="skeleton h-4 w-1/5 rounded"></div>
                     <div class="flex gap-2 ml-auto">
-                        <div class="skeleton h-8 w-14 rounded"></div>
-                        <div class="skeleton h-8 w-14 rounded"></div>
+                        <div class="skeleton h-8 w-14 rounded-lg"></div>
+                        <div class="skeleton h-8 w-14 rounded-lg"></div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
+
     </div>
 
     <!-- REAL CONTENT -->
-    <div id="pageContent">
+    <div id="pageContent" style="display:none;">
         {% block 'content' %}{% endblock 'content' %}
     </div>
 

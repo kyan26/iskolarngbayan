@@ -11,7 +11,10 @@
             <h1 class="text-2xl font-bold text-white">Grades</h1>
             <p class="text-slate-400 text-sm mt-1">{{ scholar.full_name }}</p>
         </div>
-        <a href="/scholar/{{ scholar.scholar_id }}/grades/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Add Grade</a>
+        <a href="/scholar/{{ scholar.scholar_id }}/grades/add"
+            class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+            + Add Grade
+        </a>
     </div>
 
     <div class="rounded-xl overflow-hidden border border-[#334155]">
@@ -21,6 +24,7 @@
                     <th class="px-6 py-3">#</th>
                     <th class="px-6 py-3">Subject</th>
                     <th class="px-6 py-3">Grade</th>
+                    <th class="px-6 py-3">Units</th>
                     <th class="px-6 py-3">Semester</th>
                     <th class="px-6 py-3">School Year</th>
                     <th class="px-6 py-3">Actions</th>
@@ -32,24 +36,40 @@
                     <td class="px-6 py-4 text-slate-400">{{ forloop.counter }}</td>
                     <td class="px-6 py-4 text-white font-medium">{{ grade.subject }}</td>
                     <td class="px-6 py-4">
-                        <span class="bg-emerald-900 text-emerald-300 text-xs font-medium px-2.5 py-1 rounded-full">{{ grade.grade }}</span>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full
+                            {% if grade.grade <= 1.5 %}bg-green-900 text-green-300
+                            {% elif grade.grade <= 2.5 %}bg-blue-900 text-blue-300
+                            {% elif grade.grade <= 3.0 %}bg-yellow-900 text-yellow-300
+                            {% elif grade.grade <= 4.0 %}bg-orange-900 text-orange-300
+                            {% else %}bg-red-900 text-red-300{% endif %}">
+                            {{ grade.grade }}
+                        </span>
                     </td>
+                    <td class="px-6 py-4 text-slate-400">{{ grade.units }}</td>
                     <td class="px-6 py-4 text-slate-300">{{ grade.semester }}</td>
                     <td class="px-6 py-4 text-slate-400">{{ grade.school_year }}</td>
-                    <td class="px-6 py-4">
-                        <a href="/grade/delete/{{ grade.grade_id }}" class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">Delete</a>
+                    <td class="px-6 py-4 flex gap-2">
+                        <a href="/grade/edit/{{ grade.grade_id }}"
+                            class="bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">
+                            Edit
+                        </a>
+                        <a href="/grade/delete/{{ grade.grade_id }}"
+                            class="bg-red-500 hover:bg-red-400 text-white text-xs font-medium px-3 py-1.5 rounded transition">
+                            Delete
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr class="bg-[#1e293b]">
-                    <td colspan="6" class="px-6 py-8 text-center text-slate-400">No grades recorded yet.</td>
+                    <td colspan="7" class="px-6 py-8 text-center text-slate-400">No grades recorded yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
     <div class="mt-4">
-        <a href="/scholar/list" class="text-slate-400 hover:text-white text-sm transition">← Back to Scholars</a>
+        <a href="/scholar/view/{{ scholar.scholar_id }}" class="text-slate-400 hover:text-white text-sm transition">← Back to Scholar</a>
     </div>
 </div>
 {% endblock %}

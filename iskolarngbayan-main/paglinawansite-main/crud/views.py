@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 import re
 import os
 from .models import Roles, Users, Scholarships, ScholarProfiles, Applications, Documents, Grades, Announcements
+from datetime import date
 
 
 # ─── HELPERS ────────────────────────────────────────────────
@@ -21,11 +22,7 @@ def get_session_user(request):
         return None
 
 def sync_user_pic(request, user):
-    """Keep the navbar avatar in sync with the user's current photo."""
-    scholar = ScholarProfiles.objects.filter(user=user).first()
-    if scholar and scholar.photo:
-        request.session['user_pic'] = scholar.photo.url
-    elif user.profile_picture:
+    if user.profile_picture:
         request.session['user_pic'] = user.profile_picture.url
     else:
         request.session['user_pic'] = None
@@ -43,6 +40,28 @@ def login_required(request):
     if not get_session_user(request):
         return redirect('/login')
     return None
+
+def recalculate_gpa(scholar):
+    grades = Grades.objects.filter(scholar=scholar)
+    if grades.exists():
+        total = sum(float(g.grade) for g in grades)
+        new_gpa = round(total / grades.count(), 2)
+    else:
+        new_gpa = 0.00
+    scholar.gpa = new_gpa
+    scholar.save()
+
+    # Auto-reject applications if GPA no longer meets requirement
+    applications = Applications.objects.filter(
+        scholar=scholar,
+        status__in=['pending', 'under_review', 'approved']
+    ).select_related('scholarship')
+
+    for application in applications:
+        if new_gpa > application.scholarship.gpa_requirement:
+            application.status = 'rejected'
+            application.remarks = f'Automatically rejected: Scholar GPA ({new_gpa}) no longer meets the required GPA ({application.scholarship.gpa_requirement}).'
+            application.save()
 
 
 # ─── AUTH ────────────────────────────────────────────────────
@@ -106,10 +125,7 @@ def profile_view(request):
             Applications.objects.filter(scholar=scholar).select_related('scholarship')
             if scholar else []
         )
-
-        # Keep navbar avatar in sync every time the profile page loads
         sync_user_pic(request, user)
-
         return render(request, 'auth/Profile.html', {
             'user': user,
             'scholar': scholar,
@@ -127,16 +143,16 @@ def dashboard(request):
         if guard: return guard
 
         data = {
-            'total_scholars':      ScholarProfiles.objects.count(),
-            'total_scholarships':  Scholarships.objects.count(),
-            'total_applications':  Applications.objects.count(),
-            'pending':             Applications.objects.filter(status='pending').count(),
-            'approved':            Applications.objects.filter(status='approved').count(),
-            'rejected':            Applications.objects.filter(status='rejected').count(),
-            'under_review':        Applications.objects.filter(status='under_review').count(),
-            'recent_applications': Applications.objects.select_related('scholar', 'scholarship').order_by('-applied_at')[:5],
-            'recent_announcements': Announcements.objects.select_related('posted_by').order_by('-created_at')[:3],
-            'low_gpa_scholars':    ScholarProfiles.objects.filter(gpa__gte=2.50).order_by('-gpa')[:5],
+            'total_scholars':          ScholarProfiles.objects.count(),
+            'total_scholarships':      Scholarships.objects.count(),
+            'total_applications':      Applications.objects.count(),
+            'pending':                 Applications.objects.filter(status='pending').count(),
+            'approved':                Applications.objects.filter(status='approved').count(),
+            'rejected':                Applications.objects.filter(status='rejected').count(),
+            'under_review':            Applications.objects.filter(status='under_review').count(),
+            'recent_applications':     Applications.objects.select_related('scholar', 'scholarship').order_by('-applied_at')[:5],
+            'recent_announcements':    Announcements.objects.select_related('posted_by').order_by('-created_at')[:3],
+            'low_gpa_scholars':        ScholarProfiles.objects.filter(gpa__gte=2.50).order_by('-gpa')[:5],
             'scholarships_with_slots': Scholarships.objects.all().order_by('end_date'),
         }
         return render(request, 'dashboard/Dashboard.html', data)
@@ -150,7 +166,6 @@ def role_list(request):
     try:
         guard = admin_only(request)
         if guard: return guard
-
         return render(request, 'role/RoleList.html', {'roles': Roles.objects.all()})
     except Exception as e:
         return HttpResponse(f'Error occurred during load roles: {e}')
@@ -246,16 +261,16 @@ def user_add(request):
         if guard: return guard
 
         if request.method == 'POST':
-            full_name       = request.POST.get('full_name', '').strip().title()
-            role            = request.POST.get('role', '').strip()
-            gender          = request.POST.get('gender', '').strip()
-            contact_number  = request.POST.get('contact_number', '').strip()
-            email           = request.POST.get('email', '').strip()
-            username        = request.POST.get('username', '').strip()
-            password        = request.POST.get('password', '')
+            full_name        = request.POST.get('full_name', '').strip().title()
+            role             = request.POST.get('role', '').strip()
+            gender           = request.POST.get('gender', '').strip()
+            contact_number   = request.POST.get('contact_number', '').strip()
+            email            = request.POST.get('email', '').strip()
+            username         = request.POST.get('username', '').strip()
+            password         = request.POST.get('password', '')
             confirm_password = request.POST.get('confirm_password', '')
-            address         = request.POST.get('address', '').strip().title()
-            profile_picture = request.FILES.get('profile_picture')
+            address          = request.POST.get('address', '').strip().title()
+            profile_picture  = request.FILES.get('profile_picture')
 
             errors = []
 
@@ -393,7 +408,6 @@ def user_edit(request, user_id):
 
             user.save()
 
-            # If the edited user is the currently logged-in user, sync their avatar
             if request.session.get('user_id') == user.user_id:
                 sync_user_pic(request, user)
 
@@ -461,25 +475,27 @@ def scholarship_add(request):
         if guard: return guard
 
         if request.method == 'POST':
-            name        = request.POST.get('name', '').strip()
-            description = request.POST.get('description', '').strip()
-            amount      = request.POST.get('amount', '').strip()
-            slots       = request.POST.get('slots', '').strip()
-            eligibility = request.POST.get('eligibility', '').strip()
-            start_date  = request.POST.get('start_date', '').strip()
-            end_date    = request.POST.get('end_date', '').strip()
+            name         = request.POST.get('name', '').strip()
+            description  = request.POST.get('description', '').strip()
+            amount       = request.POST.get('amount', '').strip()
+            slots        = request.POST.get('slots', '').strip()
+            eligibility  = request.POST.get('eligibility', '').strip()
+            gpa_requirement = request.POST.get('gpa_requirement', '3.00').strip()
+            start_date   = request.POST.get('start_date', '').strip()
+            end_date     = request.POST.get('end_date', '').strip()
 
             errors = []
             if not name:
                 errors.append('Scholarship name is required.')
             elif Scholarships.objects.filter(name__iexact=name).exists():
                 errors.append('Scholarship name already exists.')
-            if not description: errors.append('Description is required.')
-            if not amount:      errors.append('Amount is required.')
-            if not slots:       errors.append('Slots is required.')
-            if not eligibility: errors.append('Eligibility is required.')
-            if not start_date:  errors.append('Start date is required.')
-            if not end_date:    errors.append('End date is required.')
+            if not description:  errors.append('Description is required.')
+            if not amount:       errors.append('Amount is required.')
+            if not slots:        errors.append('Slots is required.')
+            if not eligibility:  errors.append('Eligibility is required.')
+            if not gpa_requirement: errors.append('Required GPA is required.')
+            if not start_date:   errors.append('Start date is required.')
+            if not end_date:     errors.append('End date is required.')
             if start_date and end_date and start_date >= end_date:
                 errors.append('End date must be after start date.')
 
@@ -489,9 +505,14 @@ def scholarship_add(request):
                 return render(request, 'scholarship/ScholarshipAdd.html')
 
             Scholarships.objects.create(
-                name=name, description=description, amount=amount,
-                slots=slots, eligibility=eligibility,
-                start_date=start_date, end_date=end_date,
+                name=name,
+                description=description,
+                amount=amount,
+                slots=slots,
+                eligibility=eligibility,
+                gpa_requirement=gpa_requirement,
+                start_date=start_date,
+                end_date=end_date
             )
             messages.success(request, 'Scholarship added successfully!')
             return redirect('/scholarship/list')
@@ -508,25 +529,27 @@ def scholarship_edit(request, scholarship_id):
 
         scholarship = Scholarships.objects.get(pk=scholarship_id)
         if request.method == 'POST':
-            name        = request.POST.get('name', '').strip()
-            description = request.POST.get('description', '').strip()
-            amount      = request.POST.get('amount', '').strip()
-            slots       = request.POST.get('slots', '').strip()
-            eligibility = request.POST.get('eligibility', '').strip()
-            start_date  = request.POST.get('start_date', '').strip()
-            end_date    = request.POST.get('end_date', '').strip()
+            name         = request.POST.get('name', '').strip()
+            description  = request.POST.get('description', '').strip()
+            amount       = request.POST.get('amount', '').strip()
+            slots        = request.POST.get('slots', '').strip()
+            eligibility  = request.POST.get('eligibility', '').strip()
+            gpa_requirement = request.POST.get('gpa_requirement', '3.00').strip()
+            start_date   = request.POST.get('start_date', '').strip()
+            end_date     = request.POST.get('end_date', '').strip()
 
             errors = []
             if not name:
                 errors.append('Scholarship name is required.')
             elif Scholarships.objects.filter(name__iexact=name).exclude(pk=scholarship_id).exists():
                 errors.append('Scholarship name already exists.')
-            if not description: errors.append('Description is required.')
-            if not amount:      errors.append('Amount is required.')
-            if not slots:       errors.append('Slots is required.')
-            if not eligibility: errors.append('Eligibility is required.')
-            if not start_date:  errors.append('Start date is required.')
-            if not end_date:    errors.append('End date is required.')
+            if not description:  errors.append('Description is required.')
+            if not amount:       errors.append('Amount is required.')
+            if not slots:        errors.append('Slots is required.')
+            if not eligibility:  errors.append('Eligibility is required.')
+            if not gpa_requirement: errors.append('Required GPA is required.')
+            if not start_date:   errors.append('Start date is required.')
+            if not end_date:     errors.append('End date is required.')
             if start_date and end_date and start_date >= end_date:
                 errors.append('End date must be after start date.')
 
@@ -535,13 +558,14 @@ def scholarship_edit(request, scholarship_id):
                     messages.error(request, e)
                 return render(request, 'scholarship/ScholarshipEdit.html', {'scholarship': scholarship})
 
-            scholarship.name        = name
-            scholarship.description = description
-            scholarship.amount      = amount
-            scholarship.slots       = slots
-            scholarship.eligibility = eligibility
-            scholarship.start_date  = start_date
-            scholarship.end_date    = end_date
+            scholarship.name         = name
+            scholarship.description  = description
+            scholarship.amount       = amount
+            scholarship.slots        = slots
+            scholarship.eligibility  = eligibility
+            scholarship.gpa_requirement = gpa_requirement
+            scholarship.start_date   = start_date
+            scholarship.end_date     = end_date
             scholarship.save()
             messages.success(request, 'Scholarship updated successfully!')
             return redirect('/scholarship/list')
@@ -579,7 +603,6 @@ def scholar_list(request):
         if search:
             qs = qs.filter(
                 Q(full_name__icontains=search) |
-                Q(phone__icontains=search) |
                 Q(address__icontains=search) |
                 Q(school__icontains=search) |
                 Q(course__icontains=search)
@@ -601,16 +624,15 @@ def scholar_add(request):
         available_users   = Users.objects.filter(role__role='Scholar').exclude(user_id__in=existing_user_ids)
 
         if request.method == 'POST':
-            user_id    = request.POST.get('user_id', '').strip()
-            address    = request.POST.get('address', '').strip().title()
-            school     = request.POST.get('school', '').strip().title()
-            course     = request.POST.get('course', '').strip().title()
-            year_level = request.POST.get('year_level', '').strip()
-            gpa        = request.POST.get('gpa', '').strip()
-            photo      = request.FILES.get('photo')
-            semester   = request.POST.get('semester', '').strip()
+            user_id     = request.POST.get('user_id', '').strip()
+            address     = request.POST.get('address', '').strip().title()
+            school      = request.POST.get('school', '').strip().title()
+            course      = request.POST.get('course', '').strip().title()
+            year_level  = request.POST.get('year_level', '').strip()
+            gpa         = request.POST.get('gpa', '').strip()
+            semester    = request.POST.get('semester', '').strip()
             school_year = request.POST.get('school_year', '').strip()
-            subjects   = request.POST.getlist('subject[]')
+            subjects    = request.POST.getlist('subject[]')
             grades_list = request.POST.getlist('grade[]')
 
             errors = []
@@ -620,12 +642,12 @@ def scholar_add(request):
                 errors.append('Selected user is invalid.')
             elif ScholarProfiles.objects.filter(user_id=user_id).exists():
                 errors.append('This user already has a scholar profile.')
-            if not address:    errors.append('Address is required.')
-            if not school:     errors.append('School is required.')
-            if not course:     errors.append('Course is required.')
-            if not year_level: errors.append('Year level is required.')
-            if not gpa:        errors.append('GPA is required.')
-            if not semester:   errors.append('Semester is required.')
+            if not address:     errors.append('Address is required.')
+            if not school:      errors.append('School is required.')
+            if not course:      errors.append('Course is required.')
+            if not year_level:  errors.append('Year level is required.')
+            if not gpa:         errors.append('GPA is required.')
+            if not semester:    errors.append('Semester is required.')
             if not school_year: errors.append('School year is required.')
 
             if errors:
@@ -642,11 +664,10 @@ def scholar_add(request):
                 course=course,
                 year_level=year_level,
                 gpa=gpa,
-                photo=photo,
             )
 
             for i, subj in enumerate(subjects):
-                subj = subj.strip()
+                subj      = subj.strip()
                 grade_val = grades_list[i].strip() if i < len(grades_list) else ''
                 if subj and grade_val:
                     Grades.objects.create(
@@ -657,7 +678,6 @@ def scholar_add(request):
                         school_year=school_year,
                     )
 
-            # If this scholar belongs to the logged-in user, sync their avatar
             if request.session.get('user_id') == user_obj.user_id:
                 sync_user_pic(request, user_obj)
 
@@ -685,7 +705,7 @@ def scholar_edit(request, scholar_id):
             gpa        = request.POST.get('gpa', '').strip()
 
             errors = []
-            if not full_name:  errors.append('Full name is required.')
+            if not full_name: errors.append('Full name is required.')
             if not phone:
                 errors.append('Phone number is required.')
             elif not re.fullmatch(r'\d+', phone):
@@ -710,16 +730,8 @@ def scholar_edit(request, scholar_id):
             scholar.course     = course
             scholar.year_level = year_level
             scholar.gpa        = gpa
-
-            new_photo = request.FILES.get('photo')
-            if new_photo:
-                if scholar.photo and os.path.isfile(scholar.photo.path):
-                    os.remove(scholar.photo.path)
-                scholar.photo = new_photo
-
             scholar.save()
 
-            # If this scholar belongs to the logged-in user, sync their avatar
             if request.session.get('user_id') == scholar.user_id:
                 sync_user_pic(request, scholar.user)
 
@@ -796,8 +808,10 @@ def application_add(request):
             remarks        = request.POST.get('remarks', '').strip()
 
             errors = []
-            if not scholar_id:     errors.append('Scholar is required.')
-            if not scholarship_id: errors.append('Scholarship is required.')
+            if not scholar_id:
+                errors.append('Scholar is required.')
+            if not scholarship_id:
+                errors.append('Scholarship is required.')
             elif Applications.objects.filter(scholar_id=scholar_id, scholarship_id=scholarship_id).exists():
                 errors.append('This scholar already applied for this scholarship.')
 
@@ -806,41 +820,41 @@ def application_add(request):
                     messages.error(request, e)
                 return render(request, 'application/ApplicationAdd.html', {
                     'scholars': available_scholars,
-                    'scholarships': Scholarships.objects.all(),
+                    'scholarships': Scholarships.objects.all()
                 })
 
             scholar     = ScholarProfiles.objects.get(pk=scholar_id)
             scholarship = Scholarships.objects.get(pk=scholarship_id)
 
-            # ── AUTO-REJECT CHECK ────────────────────────────────────
-            status  = 'pending'
-            remarks_auto = remarks
-
-            if scholarship.min_gpa and scholar.gpa > scholarship.min_gpa:
-                status = 'rejected'
-                remarks_auto = (
-                    f'Auto-rejected: Scholar GPA ({scholar.gpa}) '
-                    f'does not meet the minimum required GPA of {scholarship.min_gpa}.'
+            if scholar.gpa > scholarship.gpa_requirement:
+                Applications.objects.create(
+                    scholar=scholar,
+                    scholarship=scholarship,
+                    status='rejected',
+                    remarks=f'Automatically rejected: Scholar GPA ({scholar.gpa}) does not meet the required GPA ({scholarship.gpa_requirement}).'
                 )
-                messages.warning(request, f'Application auto-rejected — scholar GPA ({scholar.gpa}) is below the minimum ({scholarship.min_gpa}).')
-            else:
-                messages.success(request, 'Application submitted successfully!')
-            # ─────────────────────────────────────────────────────────
+                messages.warning(request, f'Application automatically rejected — {scholar.full_name} GPA ({scholar.gpa}) does not meet the required GPA ({scholarship.required_gpa}).')
+                return redirect('/application/list')
 
             Applications.objects.create(
                 scholar=scholar,
                 scholarship=scholarship,
-                status=status,
-                remarks=remarks_auto,
+                remarks=remarks
             )
+            # Decrease slots
+            if scholarship.slots > 0:
+                scholarship.slots -= 1
+                scholarship.save()
+            messages.success(request, 'Application submitted successfully!')
             return redirect('/application/list')
 
         return render(request, 'application/ApplicationAdd.html', {
             'scholars': available_scholars,
-            'scholarships': Scholarships.objects.all(),
+            'scholarships': Scholarships.objects.all()
         })
     except Exception as e:
         return HttpResponse(f'Error occurred during add application: {e}')
+
 
 def application_edit(request, application_id):
     try:
@@ -848,6 +862,7 @@ def application_edit(request, application_id):
         if guard: return guard
 
         application = Applications.objects.get(pk=application_id)
+
         if request.method == 'POST':
             status  = request.POST.get('status', '').strip()
             remarks = request.POST.get('remarks', '').strip()
@@ -856,9 +871,28 @@ def application_edit(request, application_id):
                 messages.error(request, 'Status is required.')
                 return render(request, 'application/ApplicationEdit.html', {'application': application})
 
+            if status == 'approved':
+                scholar_gpa  = application.scholar.gpa
+                required_gpa = application.scholarship.gpa_requirement
+                if scholar_gpa > required_gpa:
+                    messages.error(request, f'Cannot approve — {application.scholar.full_name} GPA ({scholar_gpa}) does not meet the required GPA ({required_gpa}).')
+                    return render(request, 'application/ApplicationEdit.html', {'application': application})
+
+            old_status  = application.status
+            scholarship = application.scholarship
+
             application.status  = status
             application.remarks = remarks
             application.save()
+
+            if status == 'approved' and old_status != 'approved':
+                if scholarship.slots > 0:
+                    scholarship.slots -= 1
+                    scholarship.save()
+            elif old_status == 'approved' and status != 'approved':
+                scholarship.slots += 1
+                scholarship.save()
+
             messages.success(request, 'Application updated successfully!')
             return redirect('/application/list')
 
@@ -874,6 +908,11 @@ def application_delete(request, application_id):
 
         application = Applications.objects.get(pk=application_id)
         if request.method == 'POST':
+            # Restore slot if application was approved
+            if application.status == 'approved':
+                scholarship = application.scholarship
+                scholarship.slots += 1
+                scholarship.save()
             application.delete()
             messages.success(request, 'Application deleted successfully!')
             return redirect('/application/list')
@@ -1039,20 +1078,26 @@ def grade_add(request, scholar_id):
         if guard: return guard
 
         scholar = ScholarProfiles.objects.get(pk=scholar_id)
+
+        # Auto-calculate school year (June–May academic calendar)
+        today = date.today()
+        if today.month >= 6:
+            school_year = f"{today.year}-{today.year + 1}"
+        else:
+            school_year = f"{today.year - 1}-{today.year}"
+
         if request.method == 'POST':
-            subject     = request.POST.get('subject', '').strip()
-            grade       = request.POST.get('grade', '').strip()
-            semester    = request.POST.get('semester', '').strip()
-            school_year = request.POST.get('school_year', '').strip()
+            subject  = request.POST.get('subject', '').strip()
+            grade    = request.POST.get('grade', '').strip()
+            semester = request.POST.get('semester', '').strip()
+            # school_year is NO LONGER read from POST — use the auto value above
 
             errors = []
-            if not subject:     errors.append('Subject is required.')
-            if not grade:       errors.append('Grade is required.')
-            if not semester:    errors.append('Semester is required.')
-            if not school_year: errors.append('School year is required.')
+            if not subject:  errors.append('Subject is required.')
+            if not grade:    errors.append('Grade is required.')
+            if not semester: errors.append('Semester is required.')
 
-            # ── DUPLICATE CHECK ──────────────────────────────────────
-            if subject and semester and school_year:
+            if subject and semester:
                 if Grades.objects.filter(
                     scholar=scholar,
                     subject__iexact=subject,
@@ -1060,23 +1105,30 @@ def grade_add(request, scholar_id):
                     school_year=school_year
                 ).exists():
                     errors.append(f'"{subject}" already exists for {semester} {school_year}.')
-            # ─────────────────────────────────────────────────────────
 
             if errors:
                 for e in errors:
                     messages.error(request, e)
-                return render(request, 'grade/GradeAdd.html', {'scholar': scholar})
+                return render(request, 'grade/GradeAdd.html', {
+                    'scholar': scholar,
+                    'school_year': school_year,  # pass it for display
+                })
 
             Grades.objects.create(
                 scholar=scholar, subject=subject, grade=grade,
                 semester=semester, school_year=school_year,
             )
-            messages.success(request, 'Grade added successfully!')
+            recalculate_gpa(scholar)
+            messages.success(request, f'Grade added! GPA updated to {scholar.gpa}.')
             return redirect(f'/scholar/{scholar_id}/grades')
 
-        return render(request, 'grade/GradeAdd.html', {'scholar': scholar})
+        return render(request, 'grade/GradeAdd.html', {
+            'scholar': scholar,
+            'school_year': school_year,  # pass it for display
+        })
     except Exception as e:
         return HttpResponse(f'Error occurred during add grade: {e}')
+
 
 def grade_delete(request, grade_id):
     try:
@@ -1084,10 +1136,13 @@ def grade_delete(request, grade_id):
         if guard: return guard
 
         grade_obj  = Grades.objects.get(pk=grade_id)
-        scholar_id = grade_obj.scholar.scholar_id
+        scholar    = grade_obj.scholar
+        scholar_id = scholar.scholar_id
+
         if request.method == 'POST':
             grade_obj.delete()
-            messages.success(request, 'Grade deleted successfully!')
+            recalculate_gpa(scholar)
+            messages.success(request, 'Grade deleted! GPA recalculated.')
             return redirect(f'/scholar/{scholar_id}/grades')
 
         return render(request, 'grade/GradeDelete.html', {'grade': grade_obj})
@@ -1102,10 +1157,92 @@ def my_grades(request):
 
         user    = get_session_user(request)
         scholar = ScholarProfiles.objects.filter(user=user).first()
-        grades  = Grades.objects.filter(scholar=scholar).order_by('-created_at') if scholar else []
-        return render(request, 'grade/MyGrades.html', {'grades': grades, 'scholar': scholar})
+
+        if not scholar:
+            return render(request, 'grade/MyGrades.html', {'scholar': None, 'grades': []})
+
+        maintaining_grade = scholar.maintaining_grade
+
+        selected_semester = request.GET.get('semester', '')
+        selected_year     = request.GET.get('school_year', '')
+
+        grades = Grades.objects.filter(scholar=scholar).order_by('-school_year', 'semester')
+
+        if selected_semester:
+            grades = grades.filter(semester=selected_semester)
+        if selected_year:
+            grades = grades.filter(school_year=selected_year)
+
+        school_years = Grades.objects.filter(scholar=scholar).values_list('school_year', flat=True).distinct().order_by('-school_year')
+
+        all_grades       = Grades.objects.filter(scholar=scholar)
+        total_units      = sum(float(g.units) for g in all_grades)
+        passed_subjects  = all_grades.filter(grade__lte=maintaining_grade).count()
+        failed_subjects  = all_grades.filter(grade__gt=maintaining_grade).count()
+
+        return render(request, 'grade/MyGrades.html', {
+            'scholar':            scholar,
+            'grades':             grades,
+            'total_units':        total_units,
+            'passed_subjects':    passed_subjects,
+            'failed_subjects':    failed_subjects,
+            'maintaining_grade':  maintaining_grade,
+            'school_years':       school_years,
+            'selected_semester':  selected_semester,
+            'selected_year':      selected_year,
+        })
     except Exception as e:
         return HttpResponse(f'Error occurred during load grades: {e}')
+def grade_edit(request, grade_id):
+    try:
+        guard = admin_only(request)
+        if guard: return guard
+ 
+        grade_obj  = Grades.objects.get(pk=grade_id)
+        scholar    = grade_obj.scholar
+        scholar_id = scholar.scholar_id
+ 
+        if request.method == 'POST':
+            subject  = request.POST.get('subject', '').strip()
+            grade    = request.POST.get('grade', '').strip()
+            units    = request.POST.get('units', '').strip()
+            semester = request.POST.get('semester', '').strip()
+ 
+            errors = []
+            if not subject:  errors.append('Subject is required.')
+            if not grade:    errors.append('Grade is required.')
+            if not units:    errors.append('Units is required.')
+            if not semester: errors.append('Semester is required.')
+ 
+            # Check duplicate — same subject/semester/year but different grade_id
+            if subject and semester:
+                if Grades.objects.filter(
+                    scholar=scholar,
+                    subject__iexact=subject,
+                    semester__iexact=semester,
+                    school_year=grade_obj.school_year
+                ).exclude(pk=grade_id).exists():
+                    errors.append(f'"{subject}" already exists for {semester} {grade_obj.school_year}.')
+ 
+            if errors:
+                for e in errors:
+                    messages.error(request, e)
+                return render(request, 'grade/GradeEdit.html', {'grade': grade_obj})
+ 
+            grade_obj.subject  = subject
+            grade_obj.grade    = grade
+            grade_obj.units    = units
+            grade_obj.semester = semester
+            # school_year is intentionally NOT editable — kept as-is
+            grade_obj.save()
+ 
+            recalculate_gpa(scholar)
+            messages.success(request, f'Grade updated! GPA recalculated to {scholar.gpa}.')
+            return redirect(f'/scholar/{scholar_id}/grades')
+ 
+        return render(request, 'grade/GradeEdit.html', {'grade': grade_obj})
+    except Exception as e:
+        return HttpResponse(f'Error occurred during edit grade: {e}')
 
 
 # ─── SCHOLAR PORTAL ──────────────────────────────────────────
@@ -1157,7 +1294,17 @@ def announcement_list(request):
         guard = login_required(request)
         if guard: return guard
 
-        announcements = Announcements.objects.select_related('posted_by').order_by('-created_at')
+        user = get_session_user(request)
+
+        if user.role.role == 'Admin':
+            # Admin sees everything
+            announcements = Announcements.objects.select_related('posted_by', 'target_user').order_by('-created_at')
+        else:
+            # Scholars see public announcements + their own private ones
+            announcements = Announcements.objects.select_related('posted_by', 'target_user').filter(
+                Q(target_user__isnull=True) | Q(target_user=user)
+            ).order_by('-created_at')
+
         return render(request, 'announcement/AnnouncementList.html', {'announcements': announcements})
     except Exception as e:
         return HttpResponse(f'Error occurred during load announcements: {e}')
@@ -1169,26 +1316,43 @@ def announcement_add(request):
         if guard: return guard
 
         user = get_session_user(request)
+        # Only show Scholar-role users in the target dropdown
+        scholars = Users.objects.filter(role__role='Scholar').order_by('full_name')
+
         if request.method == 'POST':
-            title   = request.POST.get('title', '').strip()
-            content = request.POST.get('content', '').strip()
+            title       = request.POST.get('title', '').strip()
+            content     = request.POST.get('content', '').strip()
+            target_user_id = request.POST.get('target_user', '').strip()  # optional
 
             errors = []
             if not title:   errors.append('Title is required.')
             if not content: errors.append('Content is required.')
 
+            target_user_obj = None
+            if target_user_id:
+                try:
+                    target_user_obj = Users.objects.get(pk=target_user_id)
+                except Users.DoesNotExist:
+                    errors.append('Selected user does not exist.')
+
             if errors:
                 for e in errors:
                     messages.error(request, e)
                 return render(request, 'announcement/AnnouncementAdd.html', {
-                    'form_data': {'title': title, 'content': content}
+                    'form_data': {'title': title, 'content': content},
+                    'scholars': scholars,
                 })
 
-            Announcements.objects.create(title=title, content=content, posted_by=user)
+            Announcements.objects.create(
+                title=title,
+                content=content,
+                posted_by=user,
+                target_user=target_user_obj,  # None = public
+            )
             messages.success(request, 'Announcement posted successfully!')
             return redirect('/announcement/list')
 
-        return render(request, 'announcement/AnnouncementAdd.html')
+        return render(request, 'announcement/AnnouncementAdd.html', {'scholars': scholars})
     except Exception as e:
         return HttpResponse(f'Error occurred during add announcement: {e}')
 
