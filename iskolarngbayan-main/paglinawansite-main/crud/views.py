@@ -1425,7 +1425,8 @@ def check_contact(request):
     qs = Users.objects.filter(contact_number=contact)
     if user_id:
         qs = qs.exclude(user_id=user_id)
-    return JsonResponse({'available': not qs.exists()})
+    # Allow up to 3 users to share the same contact number
+    return JsonResponse({'available': qs.count() < 3})
 
 def check_email(request):
     email = request.GET.get('email', '')

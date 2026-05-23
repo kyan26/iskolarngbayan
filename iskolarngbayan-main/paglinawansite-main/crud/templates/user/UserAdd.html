@@ -14,7 +14,7 @@
         </div>
 
         <div class="isk-card w-full">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" onsubmit="validateForm(event)">
                 {% csrf_token %}
 
                 <div style="display:grid;grid-template-columns:1fr;gap:16px;">
@@ -23,12 +23,16 @@
                     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:16px;">
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Full Name</label>
-                            <input type="text" name="full_name" value="{{ form_data.full_name|default:'' }}"
-                                placeholder="Juan Dela Cruz" class="isk-input" required>
+                            <input type="text" name="full_name" id="full_name"
+                                value="{{ form_data.full_name|default:'' }}"
+                                placeholder="Juan Dela Cruz"
+                                oninput="validateFullName()"
+                                class="isk-input" required>
+                            <p id="fullNameMsg" class="mt-1 text-xs"></p>
                         </div>
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Role</label>
-                            <select name="role" class="isk-input" required>
+                            <select name="role" id="role" class="isk-input" required>
                                 <option value="">-- Select Role --</option>
                                 {% for role in roles %}
                                 <option value="{{ role.role_id }}" {% if form_data.role == role.role_id|stringformat:"s" %}selected{% endif %}>{{ role.role }}</option>
@@ -41,22 +45,23 @@
                     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:16px;">
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Gender</label>
-                            <select name="gender" class="isk-input" required>
+                            <select name="gender" id="gender" class="isk-input" required>
                                 <option value="">-- Select Gender --</option>
                                 <option value="Male"   {% if form_data.gender == "Male"   %}selected{% endif %}>Male</option>
                                 <option value="Female" {% if form_data.gender == "Female" %}selected{% endif %}>Female</option>
                                 <option value="Other"  {% if form_data.gender == "Other"  %}selected{% endif %}>Other</option>
                             </select>
+                            <p id="genderMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                         </div>
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Contact Number</label>
-                            <input type="text" name="contact_number" id="contactInput"
+                            <input type="text" name="contact_number" id="contact_number"
                                 value="{{ form_data.contact_number|default:'' }}"
                                 placeholder="09XXXXXXXXX or 639XXXXXXXXX"
                                 maxlength="12"
-                                oninput="validateContact(this)"
+                                oninput="validatePHNumber(this)"
                                 class="isk-input" required>
-                            <p id="contactFeedback" class="mt-1 text-xs hidden"></p>
+                            <p id="contactMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                         </div>
                     </div>
 
@@ -64,21 +69,21 @@
                     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:16px;">
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Email</label>
-                            <input type="email" name="email" id="emailInput"
+                            <input type="email" name="email" id="email"
                                 value="{{ form_data.email|default:'' }}"
                                 placeholder="juan@email.com"
                                 oninput="validateEmail()"
                                 class="isk-input" required>
-                            <p id="emailFeedback" class="mt-1 text-xs hidden"></p>
+                            <p id="emailMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                         </div>
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Username</label>
-                            <input type="text" name="username" id="usernameInput"
+                            <input type="text" name="username" id="username"
                                 value="{{ form_data.username|default:'' }}"
                                 placeholder="juan_123"
                                 oninput="validateUsername()"
                                 class="isk-input" required>
-                            <p id="usernameFeedback" class="mt-1 text-xs" style="color:var(--text-muted)">Letters, numbers, underscores and dashes allowed</p>
+                            <p id="usernameMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                         </div>
                     </div>
 
@@ -89,11 +94,18 @@
                             <div class="relative">
                                 <input type="password" name="password" id="password"
                                     placeholder="••••••••"
+                                    oninput="validatePassword()"
                                     class="isk-input" style="padding-right:64px;" required>
-                                <button type="button" onclick="togglePassword('password')"
+                                <button type="button" onclick="togglePassword('password', 'eyeIcon1')"
                                     class="absolute right-0 top-0 h-full px-3 text-xs rounded-r-lg"
-                                    style="color:var(--text-muted);border-left:1px solid var(--border);">Show</button>
+                                    style="color:var(--text-muted);border-left:1px solid var(--border);">
+                                    <svg id="eyeIcon1" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
                             </div>
+                            <p id="passwordMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                             <p class="mt-1 text-xs" style="color:var(--text-muted)">Minimum 3 characters</p>
                         </div>
                         <div class="isk-form-group" style="margin-bottom:0">
@@ -101,11 +113,18 @@
                             <div class="relative">
                                 <input type="password" name="confirm_password" id="confirm_password"
                                     placeholder="••••••••"
+                                    oninput="checkPasswordMatch()"
                                     class="isk-input" style="padding-right:64px;" required>
-                                <button type="button" onclick="togglePassword('confirm_password')"
+                                <button type="button" onclick="togglePassword('confirm_password', 'eyeIcon2')"
                                     class="absolute right-0 top-0 h-full px-3 text-xs rounded-r-lg"
-                                    style="color:var(--text-muted);border-left:1px solid var(--border);">Show</button>
+                                    style="color:var(--text-muted);border-left:1px solid var(--border);">
+                                    <svg id="eyeIcon2" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
                             </div>
+                            <p id="matchMessage" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                         </div>
                     </div>
 
@@ -113,13 +132,21 @@
                     <div class="two-col-grid" style="display:grid;grid-template-columns:1fr;gap:16px;">
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Address</label>
-                            <input type="text" name="address" value="{{ form_data.address|default:'' }}"
-                                placeholder="Barangay, City, Province" class="isk-input" required>
+                            <input type="text" name="address" id="address"
+                                value="{{ form_data.address|default:'' }}"
+                                placeholder="Barangay, City, Province"
+                                oninput="validateAddress()"
+                                class="isk-input" required>
+                            <p id="addressMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                         </div>
                         <div class="isk-form-group" style="margin-bottom:0">
                             <label class="isk-label">Birthdate</label>
-                            <input type="date" name="birthdate" value="{{ form_data.birthdate|default:'' }}"
-                                max="{{ today }}" class="isk-input" required>
+                            <input type="date" name="birthdate" id="birthdate"
+                                value="{{ form_data.birthdate|default:'' }}"
+                                max="{{ today }}"
+                                onchange="validateBirthDate()"
+                                class="isk-input" required>
+                            <p id="birthDateMsg" class="mt-1 text-xs hidden flex items-center gap-1"></p>
                             <p class="mt-1 text-xs" style="color:var(--text-muted)">Must be at least 15 years old</p>
                         </div>
                     </div>
@@ -144,10 +171,15 @@
 </div>
 
 <style>
+#fullNameMsg, #genderMsg, #contactMsg, #usernameMsg,
+#emailMsg, #passwordMsg, #matchMessage, #addressMsg, #birthDateMsg {
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
 @media (min-width: 640px) {
     .two-col-grid { grid-template-columns: 1fr 1fr !important; }
 }
-
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1) brightness(0.7);
     cursor: pointer;
@@ -156,151 +188,227 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 </style>
 
 <script>
-    const submitBtn = document.getElementById('submitBtn');
-    const warningIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:inline;width:13px;height:13px;color:#f43f5e;margin-right:4px;vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`;
+// ── ICONS ──
+const warningIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#f43f5e]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`;
+const checkIcon  = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-[#10b981]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
 
-    function togglePassword(fieldId) {
-        const field = document.getElementById(fieldId);
-        const btn = field.nextElementSibling;
-        field.type = field.type === 'password' ? 'text' : 'password';
-        btn.textContent = field.type === 'password' ? 'Show' : 'Hide';
+// ── HELPERS ──
+function showError(msgId, inputId, message) {
+    const msg   = document.getElementById(msgId);
+    const input = document.getElementById(inputId);
+    msg.innerHTML = `${warningIcon}<span style="color:#f43f5e;">${message}</span>`;
+    msg.style.display = 'flex';
+    input.style.borderColor = '#f43f5e';
+    input.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.3)';
+}
+
+function showSuccess(msgId, inputId, message = '') {
+    const msg   = document.getElementById(msgId);
+    const input = document.getElementById(inputId);
+    input.style.borderColor = '#10b981';
+    input.style.boxShadow   = '0 0 0 2px rgba(16,185,129,0.3)';
+    if (message) {
+        msg.innerHTML = `${checkIcon}<span style="color:#10b981;">${message}</span>`;
+        msg.style.display = 'flex';
+    } else {
+        msg.style.display = 'none';
+    }
+}
+
+function resetField(msgId, inputId) {
+    const msg   = document.getElementById(msgId);
+    const input = document.getElementById(inputId);
+    msg.innerHTML = '';
+    msg.style.display = 'none';
+    input.style.borderColor = '';
+    input.style.boxShadow   = '';
+}
+
+// ── FULL NAME ──
+function validateFullName() {
+    const value = document.getElementById('full_name').value.trim();
+    if (value === '')          { resetField('fullNameMsg', 'full_name'); return false; }
+    if (value.length < 2)      { showError('fullNameMsg', 'full_name', 'Full name must be at least 2 characters.'); return false; }
+    if (/[^a-zA-Z\s]/.test(value)) { showError('fullNameMsg', 'full_name', 'Full name must contain letters only.'); return false; }
+    showSuccess('fullNameMsg', 'full_name');
+    return true;
+}
+
+// ── ADDRESS ──
+function validateAddress() {
+    const value = document.getElementById('address').value.trim();
+    if (value === '')     { resetField('addressMsg', 'address'); return false; }
+    if (value.length < 5) { showError('addressMsg', 'address', 'Address must be at least 5 characters.'); return false; }
+    showSuccess('addressMsg', 'address');
+    return true;
+}
+
+// ── BIRTHDATE ──
+function validateBirthDate() {
+    const value = document.getElementById('birthdate').value;
+    if (!value) { resetField('birthDateMsg', 'birthdate'); return false; }
+    const birth = new Date(value);
+    const today = new Date();
+    const age   = today.getFullYear() - birth.getFullYear();
+    if (birth >= today) { showError('birthDateMsg', 'birthdate', 'Birth date cannot be today or in the future.'); return false; }
+    if (age > 120)      { showError('birthDateMsg', 'birthdate', 'Please enter a valid birth date.'); return false; }
+    if (age < 15)       { showError('birthDateMsg', 'birthdate', 'Must be at least 15 years old.'); return false; }
+    showSuccess('birthDateMsg', 'birthdate');
+    return true;
+}
+
+// ── CONTACT NUMBER ──
+function validatePHNumber(input) {
+    const value = input.value;
+    input.style.borderColor = '';
+    input.style.boxShadow   = '';
+    document.getElementById('contactMsg').classList.add('hidden');
+    if (value === '') { return; }
+    if (/[^0-9]/.test(value))                                { showError('contactMsg', 'contact_number', 'Numbers only.'); return; }
+    if (!(value.startsWith('09') || value.startsWith('63'))) { showError('contactMsg', 'contact_number', 'Must start with 09 or 63.'); return; }
+    if (value.startsWith('09') && value.length < 11)         { showError('contactMsg', 'contact_number', 'Too short — must be 11 digits.'); return; }
+    if (value.startsWith('09') && value.length > 11)         { showError('contactMsg', 'contact_number', 'Too long — must be 11 digits.'); return; }
+    if (value.startsWith('63') && value.length < 12)         { showError('contactMsg', 'contact_number', 'Too short — must be 12 digits.'); return; }
+    if (value.startsWith('63') && value.length > 12)         { showError('contactMsg', 'contact_number', 'Too long — must be 12 digits.'); return; }
+    clearTimeout(window.contactDebounce);
+    window.contactDebounce = setTimeout(() => {
+        fetch(`/user/check-contact/?contact_number=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) { showSuccess('contactMsg', 'contact_number', '✓ Contact number is available.'); }
+                else                showError('contactMsg', 'contact_number', 'This contact number is already in use.');
+            }).catch(() => resetField('contactMsg', 'contact_number'));
+    }, 500);
+}
+
+// ── USERNAME ──
+let usernameDebounce  = null;
+let usernameAvailable = false;
+
+function validateUsername() {
+    const value = document.getElementById('username').value.trim();
+    clearTimeout(usernameDebounce);
+    if (value === '')          { resetField('usernameMsg', 'username'); usernameAvailable = false; return false; }
+    if (value.length < 3)      { showError('usernameMsg', 'username', 'Username must be at least 3 characters.'); usernameAvailable = false; return false; }
+    if (/\s/.test(value))      { showError('usernameMsg', 'username', 'Username cannot contain spaces.'); usernameAvailable = false; return false; }
+    if (/[^a-zA-Z0-9_-]/.test(value)) { showError('usernameMsg', 'username', 'Letters, numbers, underscores and dashes only.'); usernameAvailable = false; return false; }
+    usernameDebounce = setTimeout(() => {
+        fetch(`/user/check-username/?username=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) { showSuccess('usernameMsg', 'username', '✓ Username is available.'); usernameAvailable = true; }
+                else                { showError('usernameMsg', 'username', '✕ Username already exists, please choose another.'); usernameAvailable = false; }
+            }).catch(() => { resetField('usernameMsg', 'username'); usernameAvailable = true; });
+    }, 500);
+    return true;
+}
+
+// ── EMAIL ──
+let emailDebounce  = null;
+let emailAvailable = true;
+
+function validateEmail() {
+    const value = document.getElementById('email').value.trim();
+    clearTimeout(emailDebounce);
+    if (value === '') { resetField('emailMsg', 'email'); emailAvailable = true; return true; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        showError('emailMsg', 'email', 'Please enter a valid email address.');
+        emailAvailable = false; return false;
+    }
+    emailDebounce = setTimeout(() => {
+        fetch(`/user/check-email/?email=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) { showSuccess('emailMsg', 'email', '✓ Email is available.'); emailAvailable = true; }
+                else                { showError('emailMsg', 'email', '✕ Email already exists, please use another.'); emailAvailable = false; }
+            }).catch(() => { resetField('emailMsg', 'email'); emailAvailable = true; });
+    }, 500);
+    return true;
+}
+
+// ── PASSWORD ──
+function validatePassword() {
+    const value = document.getElementById('password').value;
+    if (value === '')    { resetField('passwordMsg', 'password'); return false; }
+    if (value.length < 3) { showError('passwordMsg', 'password', 'Password must be at least 3 characters.'); return false; }
+    showSuccess('passwordMsg', 'password');
+    checkPasswordMatch();
+    return true;
+}
+
+// ── CONFIRM PASSWORD ──
+function checkPasswordMatch() {
+    const password     = document.getElementById('password').value;
+    const confirm      = document.getElementById('confirm_password').value;
+    const msg          = document.getElementById('matchMessage');
+    const confirmInput = document.getElementById('confirm_password');
+
+    if (confirm === '') {
+        msg.style.display = 'none';
+        confirmInput.style.borderColor = '';
+        confirmInput.style.boxShadow   = '';
+        return false;
     }
 
-    // ── CONTACT NUMBER ──
-    const contactInput    = document.getElementById('contactInput');
-    const contactFeedback = document.getElementById('contactFeedback');
-    let contactDebounce   = null;
+    msg.style.display = 'flex';
+    if (password === confirm) {
+        msg.innerHTML = `${checkIcon}<span style="color:#10b981;">✓ Passwords match</span>`;
+        confirmInput.style.borderColor = '#10b981';
+        confirmInput.style.boxShadow   = '0 0 0 2px rgba(16,185,129,0.3)';
+        return true;
+    } else {
+        msg.innerHTML = `${warningIcon}<span style="color:#f43f5e;">✕ Passwords do not match</span>`;
+        confirmInput.style.borderColor = '#f43f5e';
+        confirmInput.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.3)';
+        return false;
+    }
+}
 
-    function validateContact(input) {
-        const value = input.value;
-        clearTimeout(contactDebounce);
-        if (!value) { resetContactField(); return; }
-        if (/[^0-9]/.test(value)) { setContactError('Numbers only.'); return; }
-        if (!(value.startsWith('09') || value.startsWith('63'))) { setContactError('Must start with 09 or 63.'); return; }
-        if (value.startsWith('09') && value.length < 11) { setContactError('Too short — must be 11 digits.'); return; }
-        if (value.startsWith('09') && value.length > 11) { setContactError('Too long — must be 11 digits.'); return; }
-        if (value.startsWith('63') && value.length < 12) { setContactError('Too short — must be 12 digits.'); return; }
-        if (value.startsWith('63') && value.length > 12) { setContactError('Too long — must be 12 digits.'); return; }
-        contactDebounce = setTimeout(() => {
-            fetch(`/user/check-contact/?contact_number=${encodeURIComponent(value)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.available) {
-                        setContactSuccess('✓ Contact number is available.');
-                    } else {
-                        setContactError('This number is already taken.');
-                    }
-                }).catch(() => resetContactField());
-        }, 500);
-    }
-    function setContactSuccess(msg) {
-        contactInput.style.borderColor = '#22c55e';
-        contactInput.style.boxShadow   = '0 0 0 2px rgba(34,197,94,0.2)';
-        contactFeedback.innerHTML = `<span style="color:#22c55e;">${msg}</span>`;
-        contactFeedback.classList.remove('hidden');
-        enableSubmit();
-    }
-    function setContactError(msg) {
-        contactInput.style.borderColor = '#f43f5e';
-        contactInput.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.2)';
-        contactFeedback.innerHTML = `${warningIcon}<span style="color:#f43f5e;">${msg}</span>`;
-        contactFeedback.classList.remove('hidden');
-        disableSubmit();
-    }
-    function resetContactField() {
-        contactInput.style.borderColor = '';
-        contactInput.style.boxShadow   = '';
-        contactFeedback.innerHTML = '';
-        contactFeedback.classList.add('hidden');
-        enableSubmit();
-    }
-
-    // ── EMAIL ──
-    const emailInput    = document.getElementById('emailInput');
-    const emailFeedback = document.getElementById('emailFeedback');
-    let emailDebounce   = null;
-
-    function validateEmail() {
-        const value = emailInput.value.trim();
-        clearTimeout(emailDebounce);
-        if (!value) { resetEmailField(); return; }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            emailInput.style.borderColor = '#f43f5e';
-            emailInput.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.2)';
-            emailFeedback.innerHTML = `${warningIcon}<span style="color:#f43f5e;">Please enter a valid email address.</span>`;
-            emailFeedback.classList.remove('hidden');
-            disableSubmit(); return;
+// ── VALIDATE ON SUBMIT ──
+function validateForm(event) {
+    if (!usernameAvailable) {
+        const val = document.getElementById('username').value.trim();
+        if (val.length >= 3) {
+            showError('usernameMsg', 'username', '✕ Username already exists, please choose another.');
+            event.preventDefault();
+            document.getElementById('username').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
         }
-        emailDebounce = setTimeout(() => {
-            fetch(`/user/check-email/?email=${encodeURIComponent(value)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.available) {
-                        emailInput.style.borderColor = '#22c55e';
-                        emailInput.style.boxShadow   = '0 0 0 2px rgba(34,197,94,0.2)';
-                        emailFeedback.innerHTML = `<span style="color:#22c55e;">✓ Email is available.</span>`;
-                        emailFeedback.classList.remove('hidden');
-                        enableSubmit();
-                    } else {
-                        emailInput.style.borderColor = '#f43f5e';
-                        emailInput.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.2)';
-                        emailFeedback.innerHTML = `${warningIcon}<span style="color:#f43f5e;">✕ Email already exists.</span>`;
-                        emailFeedback.classList.remove('hidden');
-                        disableSubmit();
-                    }
-                }).catch(() => resetEmailField());
-        }, 500);
     }
-    function resetEmailField() {
-        emailInput.style.borderColor = '';
-        emailInput.style.boxShadow   = '';
-        emailFeedback.innerHTML = '';
-        emailFeedback.classList.add('hidden');
-        enableSubmit();
-    }
-
-    // ── USERNAME ──
-    const usernameInput    = document.getElementById('usernameInput');
-    const usernameFeedback = document.getElementById('usernameFeedback');
-    let usernameDebounce   = null;
-
-    function validateUsername() {
-        const value = usernameInput.value.trim();
-        clearTimeout(usernameDebounce);
-        if (!value) { resetUsernameField(); return; }
-        if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-            usernameInput.style.borderColor = '#f43f5e';
-            usernameInput.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.2)';
-            usernameFeedback.innerHTML = `${warningIcon}<span style="color:#f43f5e;">Letters, numbers, underscores and dashes only.</span>`;
-            disableSubmit(); return;
+    if (!emailAvailable) {
+        const val = document.getElementById('email').value.trim();
+        if (val.length > 0) {
+            showError('emailMsg', 'email', '✕ Email already exists, please use another.');
+            event.preventDefault();
+            document.getElementById('email').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
         }
-        usernameDebounce = setTimeout(() => {
-            fetch(`/user/check-username/?username=${encodeURIComponent(value)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.available) {
-                        usernameInput.style.borderColor = '#22c55e';
-                        usernameInput.style.boxShadow   = '0 0 0 2px rgba(34,197,94,0.2)';
-                        usernameFeedback.innerHTML = `<span style="color:#22c55e;">✓ Username is available.</span>`;
-                        enableSubmit();
-                    } else {
-                        usernameInput.style.borderColor = '#f43f5e';
-                        usernameInput.style.boxShadow   = '0 0 0 2px rgba(244,63,94,0.2)';
-                        usernameFeedback.innerHTML = `${warningIcon}<span style="color:#f43f5e;">✕ Username is already taken.</span>`;
-                        disableSubmit();
-                    }
-                }).catch(() => resetUsernameField());
-        }, 500);
     }
-    function resetUsernameField() {
-        usernameInput.style.borderColor = '';
-        usernameInput.style.boxShadow   = '';
-        usernameFeedback.style.color = 'var(--text-muted)';
-        usernameFeedback.textContent = 'Letters, numbers, underscores and dashes allowed';
-        enableSubmit();
+    const results = [
+        validateFullName(),
+        validateAddress(),
+        validateBirthDate(),
+        validatePassword(),
+        checkPasswordMatch(),
+    ];
+    if (results.includes(false)) {
+        event.preventDefault();
+        const firstError = document.querySelector('[style*="border-color: rgb(244"]');
+        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+}
 
-    function enableSubmit()  { submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.style.cursor = ''; }
-    function disableSubmit() { submitBtn.disabled = true;  submitBtn.style.opacity = '0.5'; submitBtn.style.cursor = 'not-allowed'; }
+// ── TOGGLE PASSWORD ──
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon  = document.getElementById(iconId);
+    if (input.type === 'password') {
+        input.type   = 'text';
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 012.186-3.411M6.53 6.53A9.969 9.969 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411M3 3l18 18"/>`;
+    } else {
+        input.type   = 'password';
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+    }
+}
 </script>
 {% endblock %}
