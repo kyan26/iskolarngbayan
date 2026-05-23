@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password, check_password
@@ -270,6 +270,7 @@ def user_add(request):
             password         = request.POST.get('password', '')
             confirm_password = request.POST.get('confirm_password', '')
             address          = request.POST.get('address', '').strip().title()
+            birthdate        = request.POST.get('birthdate', '').strip() or None  # ← ADD THIS
             profile_picture  = request.FILES.get('profile_picture')
 
             errors = []
@@ -294,7 +295,7 @@ def user_add(request):
                 errors.append('Contact number must start with 09 or 63.')
             elif Users.objects.filter(contact_number=contact_number).exists():
                 errors.append('Contact number already exists.')
-
+                
             if not email:
                 errors.append('Email is required.')
             elif not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', email):
@@ -326,6 +327,7 @@ def user_add(request):
                         'full_name': full_name, 'gender': gender,
                         'contact_number': contact_number, 'email': email,
                         'username': username, 'role': role, 'address': address,
+                        'birthdate': birthdate,   # ← add this
                     }
                 })
 
@@ -338,6 +340,7 @@ def user_add(request):
                 username=username,
                 password=make_password(password),
                 address=address,
+                birthdate=birthdate,
                 profile_picture=profile_picture,
             )
             messages.success(request, 'User added successfully!')
@@ -355,11 +358,13 @@ def user_edit(request, user_id):
 
         user = Users.objects.get(user_id=user_id)
         if request.method == 'POST':
-            full_name = request.POST.get('full_name', '').strip().title()
-            role      = request.POST.get('role', '').strip()
-            email     = request.POST.get('email', '').strip()
-            username  = request.POST.get('username', '').strip()
-            gender    = request.POST.get('gender', '').strip()
+            full_name      = request.POST.get('full_name', '').strip().title()
+            role           = request.POST.get('role', '').strip()
+            email          = request.POST.get('email', '').strip()
+            username       = request.POST.get('username', '').strip()
+            gender         = request.POST.get('gender', '').strip()
+            birthdate      = request.POST.get('birthdate', '').strip() or None
+            contact_number = request.POST.get('contact_number', '').strip()
 
             errors = []
 
@@ -374,6 +379,15 @@ def user_edit(request, user_id):
                 errors.append('Please select a role.')
             elif not Roles.objects.filter(pk=role).exists():
                 errors.append('Selected role is invalid.')
+
+            if not contact_number:
+                errors.append('Contact number is required.')
+            elif not re.fullmatch(r'\d+', contact_number):
+                errors.append('Contact number must contain numbers only.')
+            elif not (contact_number.startswith('09') or contact_number.startswith('63')):
+                errors.append('Contact number must start with 09 or 63.')
+            elif Users.objects.filter(contact_number=contact_number).exclude(user_id=user_id).exists():
+                errors.append('Contact number already exists.')
 
             if not email:
                 errors.append('Email is required.')
@@ -394,11 +408,13 @@ def user_edit(request, user_id):
                     messages.error(request, e)
                 return render(request, 'user/UserEdit.html', {'user': user, 'roles': Roles.objects.all()})
 
-            user.full_name = full_name
-            user.role_id   = role
-            user.email     = email
-            user.username  = username
-            user.gender    = gender
+            user.full_name      = full_name
+            user.role_id        = role
+            user.email          = email
+            user.username       = username
+            user.gender         = gender
+            user.birthdate      = birthdate      # ✅ before save()
+            user.contact_number = contact_number  # ✅ before save()
 
             new_pic = request.FILES.get('profile_picture')
             if new_pic:
@@ -406,7 +422,7 @@ def user_edit(request, user_id):
                     os.remove(user.profile_picture.path)
                 user.profile_picture = new_pic
 
-            user.save()
+            user.save()  # ✅ save() is last, after all fields are set
 
             if request.session.get('user_id') == user.user_id:
                 sync_user_pic(request, user)
@@ -697,7 +713,6 @@ def scholar_edit(request, scholar_id):
         scholar = ScholarProfiles.objects.get(pk=scholar_id)
         if request.method == 'POST':
             full_name  = request.POST.get('full_name', '').strip().title()
-            phone      = request.POST.get('phone', '').strip()
             address    = request.POST.get('address', '').strip().title()
             school     = request.POST.get('school', '').strip().title()
             course     = request.POST.get('course', '').strip().title()
@@ -706,12 +721,6 @@ def scholar_edit(request, scholar_id):
 
             errors = []
             if not full_name: errors.append('Full name is required.')
-            if not phone:
-                errors.append('Phone number is required.')
-            elif not re.fullmatch(r'\d+', phone):
-                errors.append('Phone must contain numbers only.')
-            elif not (phone.startswith('09') or phone.startswith('63')):
-                errors.append('Phone must start with 09 or 63.')
             if not address:    errors.append('Address is required.')
             if not school:     errors.append('School is required.')
             if not course:     errors.append('Course is required.')
@@ -724,7 +733,6 @@ def scholar_edit(request, scholar_id):
                 return render(request, 'scholar/ScholarEdit.html', {'scholar': scholar})
 
             scholar.full_name  = full_name
-            scholar.phone      = phone
             scholar.address    = address
             scholar.school     = school
             scholar.course     = course
@@ -864,42 +872,81 @@ def application_edit(request, application_id):
         application = Applications.objects.get(pk=application_id)
 
         if request.method == 'POST':
-            status  = request.POST.get('status', '').strip()
-            remarks = request.POST.get('remarks', '').strip()
+            status         = request.POST.get('status', '').strip()
+            remarks        = request.POST.get('remarks', '').strip()
+            scholarship_id = request.POST.get('scholarship', '').strip()
 
             if not status:
                 messages.error(request, 'Status is required.')
-                return render(request, 'application/ApplicationEdit.html', {'application': application})
+                return render(request, 'application/ApplicationEdit.html', {
+                    'application': application,
+                    'scholarships': Scholarships.objects.all()
+                })
+
+            if not scholarship_id:
+                messages.error(request, 'Scholarship is required.')
+                return render(request, 'application/ApplicationEdit.html', {
+                    'application': application,
+                    'scholarships': Scholarships.objects.all()
+                })
+
+            try:
+                new_scholarship = Scholarships.objects.get(pk=scholarship_id)
+            except Scholarships.DoesNotExist:
+                messages.error(request, 'Selected scholarship does not exist.')
+                return render(request, 'application/ApplicationEdit.html', {
+                    'application': application,
+                    'scholarships': Scholarships.objects.all()
+                })
+
+            old_status      = application.status
+            old_scholarship = application.scholarship
 
             if status == 'approved':
                 scholar_gpa  = application.scholar.gpa
-                required_gpa = application.scholarship.gpa_requirement
+                required_gpa = new_scholarship.gpa_requirement
                 if scholar_gpa > required_gpa:
                     messages.error(request, f'Cannot approve — {application.scholar.full_name} GPA ({scholar_gpa}) does not meet the required GPA ({required_gpa}).')
-                    return render(request, 'application/ApplicationEdit.html', {'application': application})
+                    return render(request, 'application/ApplicationEdit.html', {
+                        'application': application,
+                        'scholarships': Scholarships.objects.all()
+                    })
 
-            old_status  = application.status
-            scholarship = application.scholarship
+            # Handle slot changes for OLD scholarship
+            if old_scholarship != new_scholarship:
+                # Scholarship changed — restore slot to old one if it was approved
+                if old_status == 'approved':
+                    old_scholarship.slots += 1
+                    old_scholarship.save()
+                # Deduct slot from new scholarship if approving
+                if status == 'approved':
+                    if new_scholarship.slots > 0:
+                        new_scholarship.slots -= 1
+                        new_scholarship.save()
+            else:
+                # Same scholarship — just handle status change
+                if status == 'approved' and old_status != 'approved':
+                    if new_scholarship.slots > 0:
+                        new_scholarship.slots -= 1
+                        new_scholarship.save()
+                elif old_status == 'approved' and status != 'approved':
+                    new_scholarship.slots += 1
+                    new_scholarship.save()
 
-            application.status  = status
-            application.remarks = remarks
+            application.status      = status
+            application.remarks     = remarks
+            application.scholarship = new_scholarship
             application.save()
-
-            if status == 'approved' and old_status != 'approved':
-                if scholarship.slots > 0:
-                    scholarship.slots -= 1
-                    scholarship.save()
-            elif old_status == 'approved' and status != 'approved':
-                scholarship.slots += 1
-                scholarship.save()
 
             messages.success(request, 'Application updated successfully!')
             return redirect('/application/list')
 
-        return render(request, 'application/ApplicationEdit.html', {'application': application})
+        return render(request, 'application/ApplicationEdit.html', {
+            'application': application,
+            'scholarships': Scholarships.objects.all()
+        })
     except Exception as e:
         return HttpResponse(f'Error occurred during edit application: {e}')
-
 
 def application_delete(request, application_id):
     try:
@@ -1371,3 +1418,36 @@ def announcement_delete(request, announcement_id):
         return render(request, 'announcement/AnnouncementDelete.html', {'announcement': announcement})
     except Exception as e:
         return HttpResponse(f'Error occurred during delete announcement: {e}')
+    
+def check_contact(request):
+    contact = request.GET.get('contact_number', '')
+    user_id = request.GET.get('user_id', None)
+    qs = Users.objects.filter(contact_number=contact)
+    if user_id:
+        qs = qs.exclude(user_id=user_id)
+    return JsonResponse({'available': not qs.exists()})
+
+def check_email(request):
+    email = request.GET.get('email', '')
+    user_id = request.GET.get('user_id', None)
+    qs = Users.objects.filter(email__iexact=email)
+    if user_id:
+        qs = qs.exclude(user_id=user_id)
+    return JsonResponse({'available': not qs.exists()})
+
+def check_username(request):
+    username = request.GET.get('username', '').strip()
+    user_id = request.GET.get('user_id', None) # Passed when editing an existing user
+    
+    if not username:
+        return JsonResponse({'available': False})
+        
+    # Start evaluating global matching queries
+    query = Users.objects.filter(username__iexact=username)
+    
+    # If a user_id exists (meaning we're editing an existing profile), exclude them from duplication logic
+    if user_id:
+        query = query.exclude(user_id=user_id)
+        
+    is_available = not query.exists()
+    return JsonResponse({'available': is_available})

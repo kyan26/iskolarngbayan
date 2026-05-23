@@ -57,16 +57,16 @@
 
             <!-- GPA Calculator -->
             <div class="bg-[#0f172a] border border-[#334155] rounded-xl p-4 mb-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <p class="text-sm font-medium text-slate-300">Subject & Grade Entry</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Philippine 5-point scale — enter each subject's grade and units</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-slate-500">Computed GPA</p>
-                        <p class="text-2xl font-bold text-[#6366f1]" id="gpaDisplay">&mdash;</p>
-                    </div>
-                </div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+    <div>
+        <p class="text-sm font-medium text-slate-300">Subject & Grade Entry</p>
+        <p class="text-xs text-slate-500 mt-0.5">Philippine 5-point scale — enter each subject's grade and units</p>
+    </div>
+    <div class="sm:text-right">
+        <p class="text-xs text-slate-500">Computed GPA</p>
+        <p class="text-2xl font-bold text-[#6366f1]" id="gpaDisplay">&mdash;</p>
+    </div>
+</div>
 
                 <div class="flex gap-4 mb-4">
                     <div class="flex-1 bg-[#1e293b] rounded-lg px-3 py-2 text-center">
@@ -83,12 +83,12 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-2 mb-2 px-1">
-                    <div class="col-span-5 text-xs text-slate-500 font-medium">Subject</div>
-                    <div class="col-span-3 text-xs text-slate-500 font-medium">Units</div>
-                    <div class="col-span-3 text-xs text-slate-500 font-medium">Grade (1.0–5.0)</div>
-                    <div class="col-span-1"></div>
-                </div>
+                <div class="hidden sm:grid grid-cols-12 gap-2 mb-2 px-1">
+    <div class="col-span-5 text-xs text-slate-500 font-medium">Subject</div>
+    <div class="col-span-3 text-xs text-slate-500 font-medium">Units</div>
+    <div class="col-span-3 text-xs text-slate-500 font-medium">Grade (1.0–5.0)</div>
+    <div class="col-span-1"></div>
+</div>
 
                 <div id="subjectRows" class="space-y-2"></div>
 
@@ -102,13 +102,13 @@
 
                 <div class="mt-4 pt-3 border-t border-[#334155]">
                     <p class="text-xs text-slate-500 mb-2">Grade Reference</p>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="text-xs bg-[#1e293b] text-green-400 px-2 py-1 rounded">1.0–1.5 Excellent</span>
-                        <span class="text-xs bg-[#1e293b] text-blue-400 px-2 py-1 rounded">1.75–2.5 Very Good</span>
-                        <span class="text-xs bg-[#1e293b] text-yellow-400 px-2 py-1 rounded">2.75–3.0 Good</span>
-                        <span class="text-xs bg-[#1e293b] text-orange-400 px-2 py-1 rounded">3.5–4.0 Passing</span>
-                        <span class="text-xs bg-[#1e293b] text-red-400 px-2 py-1 rounded">5.0 Failed</span>
-                    </div>
+                    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+    <span class="text-xs bg-[#1e293b] text-green-400 px-2 py-1 rounded text-center whitespace-nowrap">1.0–1.5 Excellent</span>
+    <span class="text-xs bg-[#1e293b] text-blue-400 px-2 py-1 rounded text-center whitespace-nowrap">1.75–2.5 Very Good</span>
+    <span class="text-xs bg-[#1e293b] text-yellow-400 px-2 py-1 rounded text-center whitespace-nowrap">2.75–3.0 Good</span>
+    <span class="text-xs bg-[#1e293b] text-orange-400 px-2 py-1 rounded text-center whitespace-nowrap">3.5–4.0 Passing</span>
+    <span class="text-xs bg-[#1e293b] text-red-400 px-2 py-1 rounded text-center whitespace-nowrap col-span-2 sm:col-span-1">5.0 Failed</span>
+</div>
                 </div>
             </div>
 
@@ -128,35 +128,35 @@
         const id = rowCount;
         const container = document.getElementById('subjectRows');
         const row = document.createElement('div');
-        row.className = 'grid grid-cols-12 gap-2 items-center';
+        row.className = 'grid grid-cols-12 gap-2 items-center mb-2';
         row.id = `row-${id}`;
         row.innerHTML = `
-            <div class="col-span-5">
-                <input type="text" name="subject[]" placeholder="e.g. Math 101"
-                    value="${subjectVal}"
-                    class="subject-name w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
-            </div>
-            <div class="col-span-3">
-                <input type="number" name="units[]" placeholder="3" min="1" max="6" step="1"
-                    value="${unitsVal}"
-                    oninput="recalcGPA()"
-                    class="subject-units w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
-            </div>
-            <div class="col-span-3">
-                <input type="number" name="grade[]" placeholder="1.50" min="1.00" max="5.00" step="0.25"
-                    value="${gradeVal}"
-                    oninput="recalcGPA()"
-                    class="subject-grade w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
-            </div>
-            <div class="col-span-1 flex justify-center">
-                <button type="button" onclick="removeRow(${id})"
-                    class="text-slate-600 hover:text-red-400 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        `;
+    <div class="col-span-12 sm:col-span-5">
+        <input type="text" name="subject[]" placeholder="e.g. Math 101"
+            value="${subjectVal}"
+            class="subject-name w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+    </div>
+    <div class="col-span-5 sm:col-span-3">
+        <input type="number" name="units[]" placeholder="Units" min="1" max="6" step="1"
+            value="${unitsVal}"
+            oninput="recalcGPA()"
+            class="subject-units w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+    </div>
+    <div class="col-span-6 sm:col-span-3">
+        <input type="number" name="grade[]" placeholder="Grade" min="1.00" max="5.00" step="0.25"
+            value="${gradeVal}"
+            oninput="recalcGPA()"
+            class="subject-grade w-full bg-[#1e293b] border border-[#334155] text-white text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+    </div>
+    <div class="col-span-1 flex justify-center items-center">
+        <button type="button" onclick="removeRow(${id})"
+            class="text-slate-600 hover:text-red-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+`;
         container.appendChild(row);
         recalcGPA();
     }

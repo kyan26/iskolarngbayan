@@ -54,10 +54,9 @@
     </div>
 
     <!-- Filters -->
-    <form method="GET" class="flex flex-wrap gap-3 mb-5">
+    <form method="GET" class="flex flex-col sm:flex-row flex-wrap gap-3 mb-0">
         <!-- Semester -->
-        <select name="semester"
-            class="bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+        <select name="semester" class="w-full sm:w-auto bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
             <option value="">All Semesters</option>
             <option value="1st Semester" {% if selected_semester == '1st Semester' %}selected{% endif %}>1st Semester</option>
             <option value="2nd Semester" {% if selected_semester == '2nd Semester' %}selected{% endif %}>2nd Semester</option>
@@ -65,30 +64,27 @@
         </select>
 
         <!-- School Year — only years that have recorded grades for this scholar -->
-        <select name="school_year"
-            class="bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
+        <select name="school_year" class="w-full sm:w-auto bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#6366f1]">
             <option value="">All School Years</option>
             {% for sy in school_years %}
             <option value="{{ sy }}" {% if selected_year == sy %}selected{% endif %}>{{ sy }}</option>
             {% endfor %}
         </select>
 
-        <button type="submit"
-            class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+        <button type="submit" class="w-full sm:w-auto bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
             Filter
         </button>
 
         {% if selected_semester or selected_year %}
-        <a href="/scholar/my-grades"
-            class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+       <a href="/scholar/my-grades" class="w-full sm:w-auto bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition text-center">
             Clear
         </a>
         {% endif %}
     </form>
 
     <!-- Grades Table -->
-    <div class="rounded-xl overflow-hidden border border-[#334155]">
-        <table class="w-full text-sm text-left">
+    <div class="rounded-xl overflow-x-auto border border-[#334155] mt-6">
+        <table class="w-full text-sm text-left" style="min-width:700px">
             <thead class="bg-[#6366f1] text-white">
                 <tr>
                     <th class="px-6 py-3">#</th>

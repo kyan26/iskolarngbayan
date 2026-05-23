@@ -72,6 +72,7 @@
         <div class="isk-card">
             <form method="POST">
                 {% csrf_token %}
+                
 
                 <div class="isk-form-group">
                     <label class="isk-label">Status</label>
@@ -85,11 +86,24 @@
                 </div>
 
                 <div class="isk-form-group">
+    <label class="isk-label">Scholarship</label>
+    <select name="scholarship" class="isk-input">
+        {% for scholarship in scholarships %}
+        <option value="{{ scholarship.scholarship_id }}" 
+            {% if application.scholarship.scholarship_id == scholarship.scholarship_id %}selected{% endif %}>
+            {{ scholarship.name }} — ₱{{ scholarship.amount }} ({{ scholarship.slots }} slots left)
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+                <div class="isk-form-group">
                     <label class="isk-label">Remarks <span class="text-slate-500">(optional)</span></label>
                     <textarea name="remarks" rows="4" class="isk-input" placeholder="Add remarks or notes...">{{ application.remarks|default:'' }}</textarea>
                 </div>
 
-                <div class="flex gap-3 mt-6">
+
+                <div class="flex flex-col sm:flex-row gap-3 mt-6">
                     <button type="submit" class="isk-btn isk-btn-primary">Save Changes</button>
                     <a href="/application/list" class="isk-btn isk-btn-secondary">Cancel</a>
                 </div>

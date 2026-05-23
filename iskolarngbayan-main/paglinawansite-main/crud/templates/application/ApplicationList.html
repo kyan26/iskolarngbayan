@@ -6,9 +6,9 @@
 {% include 'include/ToastMessage.html' %}
 
 <div class="sm:ml-64 mt-14 p-6">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
         <h1 class="text-2xl font-bold text-white">Application List</h1>
-        <a href="/application/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Add Application</a>
+        <a href="/application/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition shrink-0">+ Add Application</a>
     </div>
 
     <form method="GET" class="mb-4">
@@ -67,7 +67,7 @@
     </div>
 
     {% if page_obj.has_other_pages %}
-    <div class="flex items-center justify-between mt-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-4 gap-2">
         <p class="text-slate-400 text-sm">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} applications</p>
         <div class="flex gap-2">
             {% if page_obj.has_previous %}

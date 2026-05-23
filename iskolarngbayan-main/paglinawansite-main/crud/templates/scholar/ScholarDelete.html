@@ -17,7 +17,7 @@
 
         <form method="POST">
             {% csrf_token %}
-            <div class="flex gap-2">
+            <div class="flex flex-col sm:flex-row gap-2">
                 <button type="submit" class="bg-red-500 hover:bg-red-400 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Yes, Delete</button>
                 <a href="/scholar/list" class="bg-[#334155] hover:bg-slate-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">Cancel</a>
             </div>

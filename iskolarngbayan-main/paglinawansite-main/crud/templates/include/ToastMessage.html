@@ -1,7 +1,7 @@
 {% if messages %}
 {% for message in messages %}
-<div id="toast-{{ forloop.counter }}"
-    style="position:fixed;top:20px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.2);
+<div id="toast-{{ forloop.counter }}" class="isk-toast"
+    style="position:fixed;top:20px;right:-400px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.25);transition:right 0.3s ease, opacity 0.3s ease;max-width:320px;
     {% if message.tags == 'success' %}background:#10B981;color:#fff;
     {% elif message.tags == 'error' %}background:#EF4444;color:#fff;
     {% else %}background:#4F8EF7;color:#fff;{% endif %}">
@@ -14,13 +14,43 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
     </svg>
     {% endif %}
-    {{ message }}
+    <span style="flex:1;">{{ message }}</span>
+    <button onclick="dismissToast(this.parentElement)" style="background:none;border:none;color:inherit;cursor:pointer;padding:0;opacity:0.7;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
 </div>
-<script>
-    setTimeout(() => {
-        const toast = document.getElementById('toast-{{ forloop.counter }}');
-        if (toast) toast.style.display = 'none';
-    }, 3000);
-</script>
 {% endfor %}
+
+<script>
+(function () {
+    // Collect all toasts on this page
+    const toasts = Array.from(document.querySelectorAll('.isk-toast'));
+    if (!toasts.length) return;
+
+    // Only show the LAST toast (most recent message)
+    const toast = toasts[toasts.length - 1];
+
+    // Hide all others immediately
+    toasts.slice(0, -1).forEach(t => t.remove());
+
+    // Slide in
+    requestAnimationFrame(() => {
+        toast.style.right = '20px';
+    });
+
+    // Auto dismiss after 3.5s
+    function dismissToast(el) {
+        if (!el) return;
+        el.style.opacity = '0';
+        el.style.right   = '-400px';
+        setTimeout(() => el.remove(), 300);
+    }
+
+    window.dismissToast = dismissToast;
+
+    setTimeout(() => dismissToast(toast), 3500);
+})();
+</script>
 {% endif %}

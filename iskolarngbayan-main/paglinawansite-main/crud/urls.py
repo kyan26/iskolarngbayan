@@ -24,6 +24,9 @@ urlpatterns = [
     path('user/add', views.user_add),
     path('user/edit/<int:user_id>', views.user_edit),
     path('user/delete/<int:user_id>', views.user_delete),
+    path('user/check-contact', views.check_contact),
+    path('user/check-email', views.check_email),
+    path('user/check-username', views.check_username),
 
     # ─── SCHOLARSHIPS ───────────────────────────
     path('scholarship/list', views.scholarship_list),
