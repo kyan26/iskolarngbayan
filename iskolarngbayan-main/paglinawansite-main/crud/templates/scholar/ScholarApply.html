@@ -14,34 +14,50 @@
         </div>
     </div>
 
-    {% if messages %}
-    <div class="isk-error-box" style="max-width:680px">
-        <p class="isk-error-title">Please fix the following errors:</p>
-        {% for message in messages %}
-        <p>{{ message }}</p>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <div class="isk-card isk-form-wrap">
+
+        <!-- Scholar GPA Info -->
+        {% if scholar %}
+        <div class="mb-5 rounded-xl px-4 py-3 flex items-center gap-3"
+            style="background:rgba(79,142,247,0.08);border:1px solid rgba(79,142,247,0.2);">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#4F8EF7;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+            </svg>
+            <p style="font-size:13px;color:var(--text-muted);">
+                Your current GPA is
+                <strong style="color:#4ADE80;">{{ scholar.maintaining_grade }}</strong>
+                — only scholarships you qualify for are shown below.
+            </p>
+        </div>
+        {% endif %}
+
+        {% if scholarships %}
         <form method="POST">
             {% csrf_token %}
 
             <div class="isk-form-group">
                 <label class="isk-label">Select Scholarship</label>
-                <select name="scholarship" class="isk-input">
+                <select name="scholarship" class="isk-input" required>
                     <option value="">-- Select Scholarship --</option>
-                    {% for scholarship in scholarships %}
-                    <option value="{{ scholarship.scholarship_id }}">
-                        {{ scholarship.name }} — ₱{{ scholarship.amount }} ({{ scholarship.slots }} slots)
+                    {% for s in scholarships %}
+                    <option value="{{ s.scholarship_id }}">
+                        {{ s.name }} — ₱{{ s.amount }} | {{ s.slots }} slot{{ s.slots|pluralize }} left | GPA Required: {{ s.gpa_requirement }}
                     </option>
                     {% endfor %}
                 </select>
+                <p class="mt-1 text-xs" style="color:var(--text-muted);">
+                    Scholarships you already applied for or do not qualify for are not shown.
+                </p>
             </div>
 
             <div class="isk-form-group">
-                <label class="isk-label">Remarks <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
-                <textarea name="remarks" rows="3" placeholder="Any additional notes..." class="isk-input"></textarea>
+                <label class="isk-label">
+                    Remarks
+                    <span style="color:var(--text-muted);font-weight:400;">(optional)</span>
+                </label>
+                <textarea name="remarks" rows="3"
+                    placeholder="Any additional notes..."
+                    class="isk-input"></textarea>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2 mt-6">
@@ -49,7 +65,21 @@
                 <a href="/profile" class="isk-btn isk-btn-secondary">Cancel</a>
             </div>
         </form>
-    </div>
 
+        {% else %}
+        <!-- No eligible scholarships -->
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;color:var(--text-muted);margin-bottom:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p style="color:var(--text-primary);font-weight:600;font-size:15px;margin-bottom:6px;">No scholarships available</p>
+            <p style="color:var(--text-muted);font-size:13px;max-width:360px;">
+                You either don't meet the GPA requirements for any scholarship, have already applied to all available ones, or there are no open slots at the moment.
+            </p>
+            <a href="/profile" class="isk-btn isk-btn-secondary mt-6">Go Back to Profile</a>
+        </div>
+        {% endif %}
+
+    </div>
 </div>
 {% endblock %}

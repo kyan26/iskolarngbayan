@@ -6,12 +6,12 @@
 {% include 'include/ToastMessage.html' %}
 
 <div class="sm:ml-64 mt-14 p-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+    <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-white">Documents</h1>
             <p class="text-slate-400 text-sm mt-1">{{ application.scholar.full_name }} — {{ application.scholarship.name }}</p>
         </div>
-        <a href="/application/{{ application.application_id }}/documents/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition shrink-0">+ Upload Document</a>
+            <a href="/application/{{ application.application_id }}/documents/add" class="bg-[#6366f1] hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">+ Upload Document</a>
     </div>
 
     <div class="rounded-xl overflow-x-auto border border-[#334155]">

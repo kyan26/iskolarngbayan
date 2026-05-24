@@ -36,6 +36,7 @@ urlpatterns = [
     path('scholarship/delete/<int:scholarship_id>', views.scholarship_delete),
 
     # ─── SCHOLARS ───────────────────────────────
+    path('scholar/apply', views.scholar_apply),
     path('scholar/list', views.scholar_list),
     path('scholar/add', views.scholar_add),
     path('scholar/edit/<int:scholar_id>', views.scholar_edit),

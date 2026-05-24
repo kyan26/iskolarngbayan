@@ -1,0 +1,9 @@
+input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1) brightness(0.7);
+        cursor: pointer;
+    }
+    #usernameFeedback, #contactFeedback, #emailFeedback {
+        display: none;
+        align-items: center;
+        gap: 4px;
+    }

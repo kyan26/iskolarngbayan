@@ -149,6 +149,7 @@ def dashboard(request):
             'pending':                 Applications.objects.filter(status='pending').count(),
             'approved':                Applications.objects.filter(status='approved').count(),
             'rejected':                Applications.objects.filter(status='rejected').count(),
+            'renewal':    Applications.objects.filter(status='renewal').count(),
             'under_review':            Applications.objects.filter(status='under_review').count(),
             'recent_applications':     Applications.objects.select_related('scholar', 'scholarship').order_by('-applied_at')[:5],
             'recent_announcements':    Announcements.objects.select_related('posted_by').order_by('-created_at')[:3],
@@ -293,8 +294,8 @@ def user_add(request):
                 errors.append('Contact number must contain numbers only.')
             elif not (contact_number.startswith('09') or contact_number.startswith('63')):
                 errors.append('Contact number must start with 09 or 63.')
-            elif Users.objects.filter(contact_number=contact_number).exists():
-                errors.append('Contact number already exists.')
+            elif Users.objects.filter(contact_number=contact_number).count() >= 3:
+                errors.append('This contact number is already in use.')
                 
             if not email:
                 errors.append('Email is required.')
@@ -357,6 +358,7 @@ def user_edit(request, user_id):
         if guard: return guard
 
         user = Users.objects.get(user_id=user_id)
+
         if request.method == 'POST':
             full_name      = request.POST.get('full_name', '').strip().title()
             role           = request.POST.get('role', '').strip()
@@ -365,6 +367,7 @@ def user_edit(request, user_id):
             gender         = request.POST.get('gender', '').strip()
             birthdate      = request.POST.get('birthdate', '').strip() or None
             contact_number = request.POST.get('contact_number', '').strip()
+            address        = request.POST.get('address', '').strip().title()  # ← ADDED
 
             errors = []
 
@@ -386,8 +389,8 @@ def user_edit(request, user_id):
                 errors.append('Contact number must contain numbers only.')
             elif not (contact_number.startswith('09') or contact_number.startswith('63')):
                 errors.append('Contact number must start with 09 or 63.')
-            elif Users.objects.filter(contact_number=contact_number).exclude(user_id=user_id).exists():
-                errors.append('Contact number already exists.')
+            elif Users.objects.filter(contact_number=contact_number).exclude(user_id=user_id).count() >= 3:
+                errors.append('This contact number is already in use.')
 
             if not email:
                 errors.append('Email is required.')
@@ -413,8 +416,9 @@ def user_edit(request, user_id):
             user.email          = email
             user.username       = username
             user.gender         = gender
-            user.birthdate      = birthdate      # ✅ before save()
-            user.contact_number = contact_number  # ✅ before save()
+            user.birthdate      = birthdate
+            user.contact_number = contact_number
+            user.address        = address  # ← ADDED
 
             new_pic = request.FILES.get('profile_picture')
             if new_pic:
@@ -422,7 +426,7 @@ def user_edit(request, user_id):
                     os.remove(user.profile_picture.path)
                 user.profile_picture = new_pic
 
-            user.save()  # ✅ save() is last, after all fields are set
+            user.save()
 
             if request.session.get('user_id') == user.user_id:
                 sync_user_pic(request, user)
@@ -841,7 +845,7 @@ def application_add(request):
                     status='rejected',
                     remarks=f'Automatically rejected: Scholar GPA ({scholar.gpa}) does not meet the required GPA ({scholarship.gpa_requirement}).'
                 )
-                messages.warning(request, f'Application automatically rejected — {scholar.full_name} GPA ({scholar.gpa}) does not meet the required GPA ({scholarship.required_gpa}).')
+                messages.warning(request, f'Application automatically rejected — {scholar.full_name} GPA ({scholar.gpa}) does not meet the required GPA ({scholarship.gpa_requirement}).')
                 return redirect('/application/list')
 
             Applications.objects.create(
@@ -919,10 +923,16 @@ def application_edit(request, application_id):
                     old_scholarship.slots += 1
                     old_scholarship.save()
                 # Deduct slot from new scholarship if approving
-                if status == 'approved':
-                    if new_scholarship.slots > 0:
-                        new_scholarship.slots -= 1
-                        new_scholarship.save()
+            if status == 'approved':
+                if new_scholarship.slots <= 0:
+                    messages.error(request, f'Cannot assign — {new_scholarship.name} has no available slots.')
+                    return render(request, 'application/ApplicationEdit.html', {
+                        'application': application,
+                        'scholarships': Scholarships.objects.all()
+                    })
+                new_scholarship.slots -= 1
+                new_scholarship.save()
+                        
             else:
                 # Same scholarship — just handle status change
                 if status == 'approved' and old_status != 'approved':
@@ -1426,7 +1436,7 @@ def check_contact(request):
     if user_id:
         qs = qs.exclude(user_id=user_id)
     # Allow up to 3 users to share the same contact number
-    return JsonResponse({'available': qs.count() < 3})
+    return JsonResponse({'available': not qs.exists()})
 
 def check_email(request):
     email = request.GET.get('email', '')
@@ -1452,3 +1462,77 @@ def check_username(request):
         
     is_available = not query.exists()
     return JsonResponse({'available': is_available})
+
+def scholar_apply(request):
+    try:
+        guard = login_required(request)
+        if guard: return guard
+
+        user    = get_session_user(request)
+        scholar = ScholarProfiles.objects.filter(user=user).first()
+
+        if not scholar:
+            messages.error(request, 'You need a scholar profile to apply.')
+            return redirect('/profile')
+
+        # Only show scholarships the scholar qualifies for based on GPA
+        # and has not already applied to
+        already_applied_ids = Applications.objects.filter(
+            scholar=scholar
+        ).values_list('scholarship_id', flat=True)
+
+        eligible_scholarships = Scholarships.objects.filter(
+            gpa_requirement__gte=scholar.maintaining_grade
+        ).exclude(
+            scholarship_id__in=already_applied_ids
+        ).filter(slots__gt=0)
+
+        if request.method == 'POST':
+            scholarship_id = request.POST.get('scholarship', '').strip()
+            remarks        = request.POST.get('remarks', '').strip()
+
+            def render_form(error_msg=None):
+                if error_msg:
+                    messages.error(request, error_msg)
+                return render(request, 'scholar/ScholarApply.html', {
+                    'scholarships': eligible_scholarships,
+                    'scholar':      scholar,
+                })
+
+            if not scholarship_id:
+                return render_form('Please select a scholarship.')
+
+            try:
+                scholarship = Scholarships.objects.get(pk=scholarship_id)
+            except Scholarships.DoesNotExist:
+                return render_form('Selected scholarship does not exist.')
+
+            # GPA check
+            if scholar.maintaining_grade > scholarship.gpa_requirement:
+                return render_form(
+                    f'You do not meet the GPA requirement for "{scholarship.name}". '
+                    f'Required: {scholarship.gpa_requirement} | Your GPA: {scholar.maintaining_grade}'
+                )
+
+            # Duplicate check
+            if Applications.objects.filter(scholar=scholar, scholarship=scholarship).exists():
+                return render_form(f'You have already applied for "{scholarship.name}".')
+
+            # Slots check
+            if scholarship.slots <= 0:
+                return render_form(f'"{scholarship.name}" has no available slots.')
+
+            Applications.objects.create(
+                scholar=scholar,
+                scholarship=scholarship,
+                remarks=remarks,
+            )
+            messages.success(request, f'Application for "{scholarship.name}" submitted successfully!')
+            return redirect('/scholar/my-applications')
+
+        return render(request, 'scholar/ScholarApply.html', {
+            'scholarships': eligible_scholarships,
+            'scholar':      scholar,
+        })
+    except Exception as e:
+        return HttpResponse(f'Error occurred during apply: {e}')

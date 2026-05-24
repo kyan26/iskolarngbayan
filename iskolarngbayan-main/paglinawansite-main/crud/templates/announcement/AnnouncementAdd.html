@@ -65,8 +65,7 @@
                     <!-- Scholar dropdown (hidden by default) -->
                     <div id="scholar-dropdown" class="hidden">
                         <label class="block text-xs text-slate-400 mb-1">Select Scholar</label>
-                        <select id="scholar-select"
-                            onchange="document.getElementById('target_user_input').value = this.value"
+                        <select id="scholar-select" size="1" onchange="document.getElementById('target_user_input').value = this.value"
                             class="w-full bg-[#0f172a] border border-[#334155] text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="">— Select a scholar —</option>
                             {% for scholar in scholars %}

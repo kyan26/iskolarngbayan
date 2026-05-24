@@ -1,0 +1,15 @@
+#fullNameMsg, #genderMsg, #contactMsg, #usernameMsg,
+#emailMsg, #passwordMsg, #matchMessage, #addressMsg, #birthDateMsg {
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (min-width: 640px) {
+    .two-col-grid { grid-template-columns: 1fr 1fr !important; }
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.7);
+    cursor: pointer;
+}

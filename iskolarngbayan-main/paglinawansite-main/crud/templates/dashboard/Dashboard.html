@@ -146,7 +146,7 @@
         <!-- Donut Chart -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;">
             <h3 style="font-size:13px;font-weight:600;color:var(--text-primary);margin:0 0 16px;">Application Status Overview</h3>
-            <div style="display:flex;align-items:center;gap:20px;">
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
                 <div style="position:relative;width:120px;height:120px;flex-shrink:0;">
                     <svg viewBox="0 0 120 120" style="width:120px;height:120px;transform:rotate(-90deg);">
                         {% with total=total_applications %}
@@ -160,6 +160,8 @@
                             style="stroke-dasharray:calc({{ pending }} / {{ total }} * 289.3) 289.3;stroke-dashoffset:calc(-1 * ({{ approved }} + {{ under_review }}) / {{ total }} * 289.3);"/>
                         <circle cx="60" cy="60" r="46" fill="none" stroke="#ef4444" stroke-width="16"
                             style="stroke-dasharray:calc({{ rejected }} / {{ total }} * 289.3) 289.3;stroke-dashoffset:calc(-1 * ({{ approved }} + {{ under_review }} + {{ pending }}) / {{ total }} * 289.3);"/>
+                        <circle cx="60" cy="60" r="46" fill="none" stroke="#8b5cf6" stroke-width="16"
+                            style="stroke-dasharray:calc({{ renewal }} / {{ total }} * 289.3) 289.3;stroke-dashoffset:calc(-1 * ({{ approved }} + {{ under_review }} + {{ pending }} + {{ rejected }}) / {{ total }} * 289.3);"/>
                         {% else %}
                         <circle cx="60" cy="60" r="46" fill="none" stroke="#334155" stroke-width="16"/>
                         {% endif %}
@@ -170,7 +172,7 @@
                         <span style="font-size:10px;color:var(--text-muted);">Total</span>
                     </div>
                 </div>
-                <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+                <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:8px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;">
                         <div style="display:flex;align-items:center;gap:6px;">
                             <span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
@@ -209,6 +211,17 @@
                         <div style="display:flex;align-items:center;gap:6px;">
                             <span style="font-size:12px;font-weight:600;color:var(--text-primary);">{{ rejected }}</span>
                             <span style="font-size:11px;color:var(--text-muted);">({% if total_applications > 0 %}{% widthratio rejected total_applications 100 %}{% else %}0{% endif %}%)</span>
+                        </div>
+                    </div>
+                    <!-- Renewal (new) -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;display:inline-block;flex-shrink:0;"></span>
+                            <span style="font-size:12px;color:var(--text-muted);">Renewal</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:12px;font-weight:600;color:var(--text-primary);">{{ renewal }}</span>
+                            <span style="font-size:11px;color:var(--text-muted);">({% if total_applications > 0 %}{% widthratio renewal total_applications 100 %}{% else %}0{% endif %}%)</span>
                         </div>
                     </div>
                 </div>
